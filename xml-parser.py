@@ -87,24 +87,31 @@ def xmlWrite(doc, filename):
 
 
 def fileWalker(base_dir):
-    filenames = glob(base_dir+r"\1.3\Defs\**\*.xml")
+    filenames = glob(base_dir+ '\\Defs\\**\\*.xml', recursive=True)
     if len(filenames) == 0:
-        filenames = glob(base_dir+r"\Defs\**\*.xml")
+        filenames = glob(base_dir+ '\\1.3\\Defs\\**\\*.xml', recursive=True)
     return filenames
 
 
 if __name__ == "__main__":
     argc = len(sys.argv)
+    files=[]
     if argc < 2:
         print("usage: xml-parser.py <source_mod_root_dir> [output_dir]")
-        exit(-1)
+        print("Going to read input.")
+        source_mod_root_dir=input("source_mod_root_dir: ")
+        if not source_mod_root_dir:
+            exit(-1)
+        files=fileWalker(source_mod_root_dir)
+    else:
+        files = fileWalker(sys.argv[1])
 
     deflist = []
     with open("defclasses.txt") as file:
         deflist = file.readlines()
         deflist = [line.rstrip() for line in deflist]
 
-    files = fileWalker(sys.argv[1])
+    
     override_all = False
     save_both_all = False
     for file in files:
@@ -135,16 +142,16 @@ if __name__ == "__main__":
         if argc > 2:
             outputDir = sys.argv[2]
         else:
-            outputDir = os.path.join(".", "output")
+            outputDir = "output"
         Path(outputDir).mkdir(parents=True, exist_ok=True)
-        fullname = os.path.join(outputDir, Path(file).name)
+        fullname = os.path.join(outputDir[:], Path(file).name)
         try:
             if exists(fullname):
                 if override_all:
                     pass
                 elif save_both_all:
                     fullname = os.path.join(
-                        Path(fullname).parent, fullname+".new")
+                        Path(fullname).parent, Path(fullname).name+".new")
                 else:
                     yesno = input('File exists, override? [yes/No/all/both]')
                     if yesno.startswith('y'):
@@ -154,7 +161,7 @@ if __name__ == "__main__":
                     elif yesno.startswith('b'):
                         save_both_all = True
                         fullname = os.path.join(
-                            Path(fullname).parent, fullname+".new")
+                            Path(fullname).parent, Path(fullname).name+".new")
             xmlWrite(newtree, fullname)
         except:
             print("error in writing %s, skipped" % fullname)
