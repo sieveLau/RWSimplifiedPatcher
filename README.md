@@ -26,7 +26,7 @@ That's why I write this tool.
 
 ## How
 
-Using lxml to read and detect Defs, then generate [PatchOperationReplace](https://rimworldwiki.com/wiki/Modding_Tutorials/PatchOperations) xml to replace <code><\label\></code> and <code><\description\></code>.
+Using lxml to read and detect Defs, then generate [PatchOperationReplace](https://rimworldwiki.com/wiki/Modding_Tutorials/PatchOperations) xml to replace `<label>` and `<description>`.
 
 ## Config
 
