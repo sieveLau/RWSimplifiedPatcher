@@ -1,0 +1,16 @@
+FactionDef
+GoodwillSituationDef
+PawnKindDef
+RecipeDef
+ResearchProjectDef
+StorytellerDef
+ThingDef
+TraderKindDef
+DesignationCategoryDef
+JobDef
+ResearchTabDef
+TerrainAffordanceDef
+TerrainDef
+WorkGiverDef
+HediffDef
+ThoughtDef
