@@ -23,12 +23,12 @@ def createXPathNode(parent_node, xpath_text):
 
 
 def createReplaceNode(parent_node, element_to_search, xpath_defname, node_tag):
-#     <Operation Class="PatchOperationReplace">
-#         <xpath>/Defs/ThingDef[defName="Replicator"]/label</xpath>
-#         <value>
-#             <label>复制器</label>
-#         </value>
-#     </Operation>
+    #     <Operation Class="PatchOperationReplace">
+    #         <xpath>/Defs/ThingDef[defName="Replicator"]/label</xpath>
+    #         <value>
+    #             <label>复制器</label>
+    #         </value>
+    #     </Operation>
     operation = etree.SubElement(parent_node, 'Operation',
                                  Class="PatchOperationReplace")
 
@@ -36,7 +36,7 @@ def createReplaceNode(parent_node, element_to_search, xpath_defname, node_tag):
     # this generate "Replicator"
     defname = element_to_search.find('defName')
     if (defname == None) or (not defname.text):
-            return None
+        return None
     # find label node
     node = element_to_search.find(node_tag)
 
@@ -48,7 +48,7 @@ def createReplaceNode(parent_node, element_to_search, xpath_defname, node_tag):
     # create: <xpath>/Defs/ThingDef[defName="Replicator"]/label</xpath>
     operation.append(createXPathNode(
         operation, (xpath_text+node_tag) % (xpath_defname, defname.text)))
-    
+
     # create: <value>
     #           <label>复制器</label>
     #         </value>
@@ -58,6 +58,8 @@ def createReplaceNode(parent_node, element_to_search, xpath_defname, node_tag):
 # base_node: source_file's <Defs> node
 # xpath_str: /Defs/ThingDef or /Defs/ResearchProjectDef or anything like this
 # dest_root: the root of the output xml tree
+
+
 def searchAndReplace(base_node, xpath_str, dest_root):
     # detect Def
     dfind = etree.XPath(xpath_str)
@@ -83,23 +85,24 @@ def xmlWrite(doc, filename):
     outFile.flush()
     outFile.close()
 
+
 def fileWalker(base_dir):
     filenames = glob(base_dir+r"\1.3\Defs\**\*.xml")
-    if len(filenames)==0:
+    if len(filenames) == 0:
         filenames = glob(base_dir+r"\Defs\**\*.xml")
     return filenames
+
 
 if __name__ == "__main__":
     argc = len(sys.argv)
     if argc < 2:
         print("usage: xml-parser.py <source_mod_root_dir> [output_dir]")
         exit(-1)
-    
-    deflist =[]
+
+    deflist = []
     with open("defclasses.txt") as file:
         deflist = file.readlines()
         deflist = [line.rstrip() for line in deflist]
-
 
     files = fileWalker(sys.argv[1])
     override_all = False
@@ -131,8 +134,8 @@ if __name__ == "__main__":
         # print(etree.tostring(newroot, pretty_print=True))
         if argc > 2:
             outputDir = sys.argv[2]
-        else: 
-            outputDir = os.path.join(".","output")
+        else:
+            outputDir = os.path.join(".", "output")
         Path(outputDir).mkdir(parents=True, exist_ok=True)
         fullname = os.path.join(outputDir, Path(file).name)
         try:
@@ -140,16 +143,18 @@ if __name__ == "__main__":
                 if override_all:
                     pass
                 elif save_both_all:
-                    fullname = os.path.join(Path(fullname).parent,fullname+".new")
+                    fullname = os.path.join(
+                        Path(fullname).parent, fullname+".new")
                 else:
                     yesno = input('File exists, override? [yes/No/all/both]')
                     if yesno.startswith('y'):
                         pass
                     elif yesno.startswith('a'):
-                        override_all=True
+                        override_all = True
                     elif yesno.startswith('b'):
-                        save_both_all=True
-                        fullname = os.path.join(Path(fullname).parent,fullname+".new")
+                        save_both_all = True
+                        fullname = os.path.join(
+                            Path(fullname).parent, fullname+".new")
             xmlWrite(newtree, fullname)
         except:
             print("error in writing %s, skipped" % fullname)
