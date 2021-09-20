@@ -8,9 +8,9 @@ from glob import glob
 xpath_text = r'/Defs/%s[defName="%s"]/'
 
 
-def createTextNode(parent_node, text):
+def createTextNode(parent_node, text, type):
     value_element = etree.SubElement(parent_node, 'value')
-    elabel = etree.SubElement(value_element, 'label')
+    elabel = etree.SubElement(value_element, type)
     elabel.text = text
     value_element.append(elabel)
     return value_element
@@ -52,7 +52,7 @@ def createReplaceNode(parent_node, element_to_search, xpath_defname, node_tag):
     # create: <value>
     #           <label>复制器</label>
     #         </value>
-    operation.append(createTextNode(operation, node.text))
+    operation.append(createTextNode(operation, node.text,node_tag))
     return operation
 
 # base_node: source_file's <Defs> node
