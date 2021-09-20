@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Patch>
+    <Operation Class="PatchOperationSequence">
+        <operations>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ResearchTabDef[defName="WallStuffTab"]/label</xpath>
+                <value>
+                    <label>壁挂式物件</label>
+                </value>
+            </li>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ResearchProjectDef[defName="WallStuff"]/label</xpath>
+                <value>
+                    <label>壁挂式物件</label>
+                </value>
+            </li>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ResearchProjectDef[defName="MatterToEnergyConversion"]/label</xpath>
+                <value>
+                    <label>能量到物质的转换</label>
+                </value>
+            </li>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ResearchProjectDef[defName="MatterToEnergyConversion"]/description</xpath>
+                <value>
+                    <description>能量到物质的转换，允许建造复制器，使用大量的能量生产少量的物品。</description>
+                </value>
+            </li>
+        </operations>
+    </Operation>
+</Patch>

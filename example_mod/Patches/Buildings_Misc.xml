@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Patch>
+    <Operation Class="PatchOperationSequence">
+        <operations>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="WallToolBoard"]/label</xpath>
+                <value>
+                    <label>壁挂式工具板</label>
+                </value>
+            </li>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="WallToolBoard"]/description</xpath>
+                <value>
+                    <description>当放置在工作台附近时，可提高工作速度。一个工作台最多可使用两个工具板。</description>
+                </value>
+            </li>
+        </operations>
+    </Operation>
+    <Operation Class="PatchOperationSequence">
+        <operations>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="WallMountedOrbitalTradeBeacon"]/label</xpath>
+                <value>
+                    <label>壁挂式轨道交易信标</label>
+                </value>
+            </li>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="WallMountedOrbitalTradeBeacon"]/description</xpath>
+                <value>
+                    <description>壁挂式轨道信标，用于轨道交易。你只能把在信标附近的货物卖给轨道交易者。可放置在室内。</description>
+                </value>
+            </li>
+        </operations>
+    </Operation>
+</Patch>

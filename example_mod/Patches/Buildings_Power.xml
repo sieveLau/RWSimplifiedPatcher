@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Patch>
+    <Operation Class="PatchOperationSequence">
+        <operations>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="WallMountedBattery"]/label</xpath>
+                <value>
+                    <label>嵌入式电池</label>
+                </value>
+            </li>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="WallMountedBattery"]/description</xpath>
+                <value>
+                    <description>储存电力供日后使用。带电电池暴露在雨中或火中会爆炸。</description>
+                </value>
+            </li>
+        </operations>
+    </Operation>
+
+    <Operation Class="PatchOperationSequence">
+        <operations>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="WallPowerSwitch"]/label</xpath>
+                <value>
+                    <label>墙上开关</label>
+                </value>
+            </li>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="WallPowerSwitch"]/description</xpath>
+                <value>
+                    <description>连接/断开电路。</description>
+                </value>
+            </li>
+        </operations>
+    </Operation>
+</Patch>

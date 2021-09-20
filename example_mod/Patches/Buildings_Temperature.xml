@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Patch>
+    <Operation Class="PatchOperationSequence">
+        <operations>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="WallHeater"]/label</xpath>
+                <value>
+                    <label>壁挂式加热器</label>
+                </value>
+            </li>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="WallHeater"]/description</xpath>
+                <value>
+                    <description>壁挂式加热器，更有效地加热大房间和基地。它可以自动开启或关闭，以达到特定的目标温度。</description>
+                </value>
+            </li>
+        </operations>
+    </Operation>
+
+    <Operation Class="PatchOperationSequence">
+        <operations>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="WallCooler"]/label</xpath>
+                <value>
+                    <label>>壁挂式制冷机</label>
+                </value>
+            </li>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="WallCooler"]/description</xpath>
+                <value>
+                    <description>壁挂式冷却器，无需排气，多余的热量被重新利用，以减少电力消耗。它可以自动开启或关闭，以达到特定的目标温度。</description>
+                </value>
+            </li>
+        </operations>
+    </Operation>
+
+    <Operation Class="PatchOperationSequence">
+        <operations>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="WallClimateController"]/label</xpath>
+                <value>
+                    <label>>壁挂式恒温器</label>
+                </value>
+            </li>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="WallClimateController"]/description</xpath>
+                <value>
+                    <description>壁挂式恒温器，不需要排气，多余的热量被重新利用，以减少电力消耗。它可以自动开启或关闭，以达到特定的目标温度。</description>
+                </value>
+            </li>
+        </operations>
+    </Operation>
+
+    <Operation Class="PatchOperationSequence">
+        <operations>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="WallVent"]/label</xpath>
+                <value>
+                    <label>>通风孔</label>
+                </value>
+            </li>
+        </operations>
+    </Operation>
+
+    
+</Patch>

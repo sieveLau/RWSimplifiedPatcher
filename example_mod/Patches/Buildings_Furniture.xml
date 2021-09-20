@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Patch>
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="WallscreenTelevision"]/label</xpath>
+        <value>
+            <label>壁挂式电视</label>
+        </value>
+    </Operation>
+    <Operation Class="PatchOperationSequence">
+        <operations>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="SmallWallscreenTelevision"]/label</xpath>
+                <value>
+                    <label>小型壁挂式电视</label>
+                </value>
+            </li>
+        </operations>
+    </Operation>
+    <Operation Class="PatchOperationSequence">
+        <operations>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="Wall_Hifi"]/label</xpath>
+                <value>
+                    <label>壁挂式Hi-Fi</label>
+                </value>
+            </li>
+            <li Class="PatchOperationReplace">
+                <xpath>/Defs/ThingDef[defName="Wall_Hifi"]/description</xpath>
+                <value>
+                    <description>一个小型的高保真音频系统，可以将无线电信号转换成声音，或者播放标准的、无处不在的数据卡里记录的声音。</description>
+                </value>
+            </li>
+        </operations>
+    </Operation>
+</Patch>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Patch>
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="Replicator"]/label</xpath>
+        <value>
+            <label>复制器</label>
+        </value>
+    </Operation>
+    <Operation Class="PatchOperationReplace">
+        <xpath>/Defs/ThingDef[defName="Replicator"]/description</xpath>
+        <value>
+            <description>一种安装在墙上的小型复制装置。</description>
+        </value>
+    </Operation>
+</Patch>
