@@ -60,6 +60,9 @@ def createReplaceNode(parent_node, element_to_search, xpath_defname, node_tag):
 # dest_root: the root of the output xml tree
 
 
+def hasChild(node):
+    return (node is not None) and (len(list(node)) > 0)
+
 def searchAndReplace(base_node, xpath_str, dest_root):
     # detect Def
     dfind = etree.XPath(xpath_str)
@@ -67,15 +70,14 @@ def searchAndReplace(base_node, xpath_str, dest_root):
     xpath_defname = xpath_str[(xpath_str.find("/", 2))+1:]
     for i in dfind(base_node):
         operation = createReplaceNode(dest_root, i, xpath_defname, 'label')
-        if operation is None:
+        if not hasChild(operation):
             continue
         dest_root.append(operation)
 
         operation = createReplaceNode(
             dest_root, i, xpath_defname, 'description')
-        if operation is None:
-            continue
-        dest_root.append(operation)
+        if hasChild(operation):
+            dest_root.append(operation)
 
 
 def xmlWrite(doc, filename):
@@ -91,6 +93,11 @@ def fileWalker(base_dir):
     if len(filenames) == 0:
         filenames = glob(base_dir+ '\\1.3\\Defs\\**\\*.xml', recursive=True)
     return filenames
+
+def cleanEmptyNode(root_node):
+    for child in root_node:
+        if not hasChild(child):
+            root_node.remove(child)
 
 
 if __name__ == "__main__":
@@ -134,6 +141,8 @@ if __name__ == "__main__":
         # detect ThingDef
         for adef in deflist:
             searchAndReplace(root, "/Defs/%s" % adef, newroot)
+
+        cleanEmptyNode(newroot)
 
         if len(list(newroot)) == 0:
             print("found nothing, skipped")
