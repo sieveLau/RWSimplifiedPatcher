@@ -1,0 +1,26 @@
+cmake_minimum_required(VERSION 3.19)
+
+project(RWSimplifiedPatcher)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set (OUTPUT_DIRECTORY "bin")
+SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIRECTORY}")
+SET( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIRECTORY}")
+SET( CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIRECTORY}")
+SET( CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIRECTORY}")
+SET( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "libd")
+SET( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "lib")
+
+find_package(LibXml2 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS log)
+
+include_directories(${LIBXML2_INCLUDE_DIR})
+include_directories(${Boost_INCLUDE_DIRS})
+link_libraries(${LIBXML2_LIBRARIES})
+link_libraries(${Boost_LIBRARIES})
+
+add_library(simple_xml simple_xml.cc simple_xml.h)
+add_executable(${PROJECT_NAME} main.cpp)
+target_link_libraries(${PROJECT_NAME} simple_xml)
+

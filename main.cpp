@@ -15,7 +15,7 @@ using std::vector;
 using std::string;
 
 void generate_operation(simplexml::simple_xml* simple_xml, xml_construct& xml_construct,
-                        vector<string> defs_to_search_for)
+                        const vector<string>& defs_to_search_for)
 {
 	for (auto&& i : defs_to_search_for)
 	{
@@ -81,7 +81,7 @@ vector<string> init_defs(path exe_dir){
 	
 }
 
-std::string path_to_string(path a_path)
+std::string path_to_string(const path& a_path)
 {
 	std::wstring temp_buff(a_path.c_str());
 	return string(temp_buff.begin(),temp_buff.end());
