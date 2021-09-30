@@ -30,5 +30,5 @@ No configuration needed. It will detect everything ending with "Def" in the xml 
 
 ## Todo
 
-[] read and generate About.xml
-[] [[notlikely]] GUI
+- [ ] read and generate About.xml
+- [ ] [[notlikely]] GUI
