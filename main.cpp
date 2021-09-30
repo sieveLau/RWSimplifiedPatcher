@@ -1,12 +1,13 @@
+#include "helper.h"
 #include "simple_xml.h"
+#include <boost/log/trivial.hpp>
 #include <cstdio>
 #include <filesystem>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <libxml/parser.h>
 #include <regex>
 #include <vector>
-#include <boost/log/trivial.hpp>
 constexpr auto def_classes = "defclasses.txt";
 
 
@@ -15,12 +16,12 @@ using std::vector;
 using std::string;
 
 void generate_operation(simplexml::simple_xml* simple_xml, xml_construct& xml_construct,
-                        vector<string> defs_to_search_for)
+                        const vector<string>& defs_to_search_for)
 {
 	for (auto&& i : defs_to_search_for)
 	{
-		auto operations = simplexml::bulk_create_operation(*simple_xml, i);
-		for (auto&& operation : operations)
+
+		for (auto operations = xml::helper::search_xml_and_create_operation_list(*simple_xml, i); auto&& operation : operations)
 		{
 			xml_construct.add_replace_operation(operation);
 		}
@@ -81,7 +82,7 @@ vector<string> init_defs(path exe_dir){
 	
 }
 
-std::string path_to_string(path a_path)
+std::string path_to_string(const path& a_path)
 {
 	std::wstring temp_buff(a_path.c_str());
 	return string(temp_buff.begin(),temp_buff.end());

@@ -23,53 +23,23 @@ namespace simplexml {
 		string usable_str(tempbuf.begin(), tempbuf.end());
 		doc_ = xmlReadFile(usable_str.c_str(), NULL, XML_PARSE_RECOVER);
 	}
-	vector<xmlNodePtr> get_child_elements_by_name(const xmlNode* start_node, const string& name) {
+    void simple_xml::private_print_element_names(xmlNode *a_node)
+    {
+        xmlNode *cur_node = NULL;
+        static int depth = 0;
+        for (cur_node = a_node; cur_node; cur_node = cur_node->next)
+        {
+            if (cur_node->type == XML_ELEMENT_NODE)
+            {
+                printf("node type: Element, depth: %d, name: %s\n", depth, cur_node->name);
+            }
+            depth++;
+            private_print_element_names(cur_node->children);
+            depth--;
+        }
+    }
 
-		vector<xmlNodePtr> result;
-		if ((start_node && start_node->xmlChildrenNode)) {
-			xmlNodePtr cur = const_cast<xmlNodePtr>(start_node->xmlChildrenNode);
-			while (cur != NULL) {
-				if (!xmlStrcmp(cur->name, reinterpret_cast<const xmlChar*>(name.c_str()))) {
-					result.push_back(cur);
-				}
-				cur = cur->next;
-			}
-		}
-		return result;
-	}
-	xmlNodePtr get_child_element_by_name(const xmlNode* start_node, const string& name) {
-		if ((start_node && start_node->xmlChildrenNode)) {
-			xmlNodePtr cur = const_cast<xmlNodePtr>(start_node)->children;
-			while (cur != NULL) {
-				if (!xmlStrcmp(cur->name, reinterpret_cast<const xmlChar*>(name.c_str()))) {
-					return cur;
-				}
-				cur = cur->next;
-			}
-		}
-		return NULL;
-	}
-
-	vector<operation> bulk_create_operation(const simple_xml& simple_xml, string whatDef) {
-		vector<operation> result;
-		for (auto someDefList = get_child_elements_by_name(simple_xml.get_root_node(), whatDef); auto && i :
-		someDefList) {
-			auto* defName = get_child_element_by_name(i, "defName");
-			auto* temp_ptr = get_child_element_by_name(i, "label");
-			if (!defName) continue;
-			if (temp_ptr)
-
-				result.push_back({ whatDef, simple_xml.get_string_by_node(defName), "label", simple_xml.get_string_by_node(temp_ptr) });
-
-			temp_ptr = get_child_element_by_name(i, "description");
-			if (temp_ptr)
-
-				result.push_back({ whatDef, simple_xml.get_string_by_node(defName), "description", simple_xml.get_string_by_node(temp_ptr) });
-		}
-		return result;
-	}
-
-};// namespace simplexml
+    };// namespace simplexml
 
 xml_construct::xml_construct() : doc_(xmlNewDoc(BAD_CAST "1.0")), root_(xmlNewNode(NULL, BAD_CAST "Patch")) {
 	xmlDocSetRootElement(doc_, root_);
@@ -77,4 +47,27 @@ xml_construct::xml_construct() : doc_(xmlNewDoc(BAD_CAST "1.0")), root_(xmlNewNo
 
 xml_construct::~xml_construct() {
 	xmlFreeDoc(doc_);
+}
+void xml_construct::add_replace_operation(const simplexml::operation &a_operation)
+{
+    /*
+<Operation Class="PatchOperationReplace">
+    <xpath>/Defs/ThingDef[defName="WallscreenTelevision"]/label</xpath>
+    <value>
+        <label>壁挂式电视</label>
+    </value>
+</Operation>
+     */
+    auto *node = xmlNewChild(root_, NULL, BAD_CAST "Operation", NULL);
+    xmlNewProp(node, BAD_CAST "Class", BAD_CAST "PatchOperationReplace");
+
+    std::string format_str(R"(/Defs/{}[defName="{}"]/{})");
+    char *buff = new char[format_str.size() + a_operation.whatDef.size() + a_operation.defName.size() +
+        a_operation.tag.size() + 8];
+    sprintf(buff, format_str.c_str(), a_operation.whatDef.c_str(), a_operation.defName.c_str(),
+            a_operation.tag.c_str());
+
+    xmlNewChild(node, NULL, BAD_CAST "xpath", BAD_CAST buff);
+    auto *value_node = xmlNewChild(node, NULL, BAD_CAST "value", NULL);
+    xmlNewChild(value_node, NULL, BAD_CAST a_operation.tag.c_str(), BAD_CAST a_operation.value.c_str());
 }
