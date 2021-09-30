@@ -11,40 +11,7 @@
 using std::vector;
 using std::string;
 namespace simplexml {
-vector<xmlNodePtr> get_child_elements_by_name(const xmlNode *start_node, const string &name);
 
-xmlNodePtr get_child_element_by_name(const xmlNode *start_node, const string &name);
-
-class simple_xml {
-  xmlDocPtr doc_;
-
-  void private_print_element_names(xmlNode *a_node) {
-    xmlNode *cur_node = NULL;
-    static int depth = 0;
-    for (cur_node = a_node; cur_node; cur_node = cur_node->next) {
-      if (cur_node->type == XML_ELEMENT_NODE) {
-        printf("node type: Element, depth: %d, name: %s\n", depth, cur_node->name);
-      }
-      depth++;
-      private_print_element_names(cur_node->children);
-      depth--;
-    }
-  }
-
- public:
-  explicit simple_xml(const string &xml_file_path);
-  explicit simple_xml(const std::filesystem::path &xml_file_path);
-  ~simple_xml();
-  string get_string_by_node(xmlNodePtr) const;
-
-  xmlNodePtr get_root_node() const {
-    return xmlDocGetRootElement(doc_);
-  }
-
-  void print_element_names() {
-    private_print_element_names(get_root_node());
-  }
-};
 struct operation
 {
   string whatDef;
@@ -56,7 +23,6 @@ struct operation
   // value
   string value;
 };
-vector<operation> bulk_create_operation(const simple_xml &simple_xml, string whatDef);
 }// namespace simplexml
 
 class xml_construct {

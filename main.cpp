@@ -1,31 +1,18 @@
 #include "simple_xml.h"
-#include <cstdio>
 #include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <libxml/parser.h>
-#include <regex>
 #include <vector>
 #include <boost/log/trivial.hpp>
+#include <memory>
+#include <map>
 constexpr auto def_classes = "defclasses.txt";
 
 
 using path = std::filesystem::path;
 using std::vector;
 using std::string;
-
-void generate_operation(simplexml::simple_xml* simple_xml, xml_construct& xml_construct,
-                        vector<string> defs_to_search_for)
-{
-	for (auto&& i : defs_to_search_for)
-	{
-		auto operations = simplexml::bulk_create_operation(*simple_xml, i);
-		for (auto&& operation : operations)
-		{
-			xml_construct.add_replace_operation(operation);
-		}
-	}
-}
 
 
 vector<path> file_walker(const string& dir)
@@ -47,89 +34,128 @@ vector<path> file_walker(const string& dir)
 inline const char* separator()
 {
 #ifdef _WIN32
-    return "\\";
+	return "\\";
 #else
     return "/";
 #endif
 }
 
-vector<string> init_defs(path exe_dir){
-	
+vector<string> init_defs(path exe_dir)
+{
 	BOOST_LOG_TRIVIAL(trace) << "init_defs() start";
-	
+
 	vector<string> result;
+	path config_path = exe_dir / def_classes;;
 	// std::cout<<exe_dir<<std::endl;
-	path config_path=exe_dir.concat(separator()).concat(def_classes);
 	BOOST_LOG_TRIVIAL(info) << "def classes file: " << config_path;
-	
-	if(exists(config_path)){
+
+	if (exists(config_path))
+	{
 		BOOST_LOG_TRIVIAL(trace) << "if(exists(config_path))";
 		string line;
 		std::ifstream in;
 		in.open(config_path);
-		while(getline(in,line)){
+		while (getline(in, line))
+		{
 			result.push_back(line);
 			BOOST_LOG_TRIVIAL(info) << "Read: " << line;
 		}
 		in.close();
-	}else{
+	}
+	else
+	{
 		BOOST_LOG_TRIVIAL(trace) << "if(exists(config_path))-else";
 		result.push_back("ThingDef");
 	}
 	BOOST_LOG_TRIVIAL(trace) << "init_defs() end";
 	return result;
-	
 }
 
 std::string path_to_string(path a_path)
 {
 	std::wstring temp_buff(a_path.c_str());
-	return string(temp_buff.begin(),temp_buff.end());
+	return string(temp_buff.begin(), temp_buff.end());
+}
+
+auto xml_parser(std::string path) -> std::map<std::string, std::vector<simplexml::operation>>
+{
+	using std::unique_ptr;
+	unique_ptr<xmlDoc, void(*)(xmlDocPtr)> doc(xmlReadFile(path.c_str(), NULL, XML_PARSE_RECOVER), &xmlFreeDoc);
+	auto* doc_root = xmlDocGetRootElement(doc.get());
+	std::map<std::string, std::vector<simplexml::operation>> xml_cache;
+
+	for (auto* first_level_def = doc_root->xmlChildrenNode; first_level_def; first_level_def =
+		first_level_def->next)
+	{
+		std::string def_type(reinterpret_cast<const char*>(first_level_def->name));
+		if (def_type.ends_with("Def"))
+		{
+			BOOST_LOG_TRIVIAL(info) << "Found: " << def_type;
+			static const xmlChar* defName_str = BAD_CAST"defName";
+			static const xmlChar* label_str = BAD_CAST"label";
+			static const xmlChar* description_str = BAD_CAST"description";
+			simplexml::operation a_operation({def_type});
+			bool ready = false;
+			for (auto* second_level_element = first_level_def->children; second_level_element; second_level_element =
+			     second_level_element->next)
+			{
+				if (!xmlStrcmp(second_level_element->name, defName_str))
+				{
+					a_operation.defName = reinterpret_cast<const char*>(xmlNodeListGetString(
+						doc.get(), second_level_element->children, 1));
+					ready = true;
+					continue;
+				}
+				if (!xmlStrcmp(second_level_element->name, label_str))
+				{
+					a_operation.tag = "label";
+					a_operation.value = reinterpret_cast<const char*>(xmlNodeListGetString(
+						doc.get(), second_level_element->children, 1));
+					if (ready)xml_cache[def_type].push_back(a_operation);
+					continue;
+				}
+				if (!xmlStrcmp(second_level_element->name, description_str))
+				{
+					a_operation.tag = "description";
+					a_operation.value = reinterpret_cast<const char*>(xmlNodeListGetString(
+						doc.get(), second_level_element->children, 1));
+					if (ready)xml_cache[def_type].push_back(a_operation);
+				}
+			}
+		}
+	}
+	return xml_cache;
+}
+
+inline void add_operation(xml_construct* construct, std::map<std::string, std::vector<simplexml::operation>> cache_map)
+{
+	for (auto const& [key, val] : cache_map)
+		for (auto&& item : val)
+			construct->add_replace_operation(item);
 }
 
 int main(int argc, char** argv)
 {
-	vector<simplexml::simple_xml*> all_xmls;
+	const std::string exe_dir = path_to_string(path(argv[0]).parent_path());
+	// const auto defs = init_defs(exe_dir);
 	if (argc < 2)
 	{
-		all_xmls.push_back(new simplexml::simple_xml(
-			string(R"(C:\Steam\steamapps\common\RimWorld\Mods\WallStuff\1.3\Defs\Buildings_Misc.xml)")));
+		BOOST_LOG_TRIVIAL(fatal) << "no source file";
+		std::cout << "usage: RWSimplifiedPatcher.exe <Defs folder>\n";
+		std::cout << "       RWSimplifiedPatcher.exe <xml file>"<<std::endl;
+		exit(EXIT_FAILURE);
 	}
+	xml_construct xmlc;
+	if (std::filesystem::is_regular_file(argv[1])) add_operation(&xmlc, xml_parser(argv[1]));
+	else if (std::filesystem::is_directory(argv[1])) 
+		for (auto&& i : file_walker(argv[1])) add_operation(&xmlc, xml_parser(path_to_string(i)));
 	else
 	{
-		auto src_path = std::filesystem::path(argv[1]);
-		if (is_regular_file(src_path)) all_xmls.push_back(new simplexml::simple_xml(src_path));
-		if (is_directory(src_path))
-		{
-			for (auto&& i : file_walker(argv[1]))
-			{
-				all_xmls.push_back(new simplexml::simple_xml(i));
-			}
-			// getchar();
-		}
-		else
-		{
-			BOOST_LOG_TRIVIAL(fatal) << "open source file(s)/directory failed";
-			static_cast<void>(getchar());
-			return -1;
-		}
+		BOOST_LOG_TRIVIAL(fatal) << "open source file(s)/directory failed";
+		static_cast<void>(getchar());
+		return -1;
 	}
-
-	xml_construct xmlc;
-	for (simplexml::simple_xml* simplexml : all_xmls)
-	{
-		generate_operation(simplexml, xmlc, init_defs(path(argv[0]).parent_path()));
-	}
-	// std::cout<<path(argv[0]).parent_path()<<std::endl;
-	xmlc.dump(path_to_string(path(argv[0]).parent_path())+separator()+"all_patch.xml");
-
-	while (!all_xmls.empty())
-	{
-		auto* xml = all_xmls.back();
-		all_xmls.pop_back();
-		delete xml;
-	}
+	xmlc.dump(exe_dir + separator() + "all_patch.xml");
 	xmlCleanupParser();
-	// getchar();
 	return 0;
 }
