@@ -1,10 +1,8 @@
 #include "simple_xml.h"
-#include <cstdio>
 #include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <libxml/parser.h>
-#include <regex>
 #include <vector>
 #include <boost/log/trivial.hpp>
 #include <memory>
@@ -86,8 +84,8 @@ auto xml_parser(std::string path) -> std::map<std::string, std::vector<simplexml
 	auto* doc_root = xmlDocGetRootElement(doc.get());
 	std::map<std::string, std::vector<simplexml::operation>> xml_cache;
 
-	auto* first_level_def = doc_root->xmlChildrenNode;
-	while (first_level_def)
+	for (auto* first_level_def = doc_root->xmlChildrenNode; first_level_def; first_level_def =
+		first_level_def->next)
 	{
 		std::string def_type(reinterpret_cast<const char*>(first_level_def->name));
 		if (def_type.ends_with("Def"))
@@ -125,7 +123,6 @@ auto xml_parser(std::string path) -> std::map<std::string, std::vector<simplexml
 				}
 			}
 		}
-		first_level_def = first_level_def->next;
 	}
 	return xml_cache;
 }
