@@ -1,14 +1,19 @@
 ## Compile Requirement
 
-- c++20: for `std::format` and `std::filesystem`
-- boost log
-- libxml2
+- c++17: for `std::filesystem`
+- cmake: at least 3.11
 
 ## Usage
+
+### Windows
 
 Drag&Drop the `Defs` folder of a mod onto the `RWSimplifiedPatcher.exe`, and it will output `all_patch.xml` for translation. You can also drop a single xml on it.
 
 Edit the `all_patch.xml` and place it into your translation mod. An example translation mod structure: [example_mod](https://github.com/sieveLau/RWSimplifiedPatcher/tree/master/example_mod). You should place the translation mod into Rimworld's `Mods` folder and activate it.
+
+### Linux and Mac
+
+`./RWSimplifiedPatcher <Defs Directory>` or `./RWSimplifiedPatcher <xml file>` or `./RWSimplifiedPatcher`. 
 
 ## Why
 
