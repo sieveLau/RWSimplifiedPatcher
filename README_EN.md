@@ -1,6 +1,6 @@
 ## Compile Requirement
 
-- c++17: for `std::filesystem`
+- c++20: for `std::filesystem` and `std::string ends_with()`
 - cmake: at least 3.11
 
 ## Usage

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.11)
 project(RWSimplifiedPatcher VERSION 1.0)
 include(FetchContent)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 # on M1 chips, this must be off to compile libxml2
 set(BUILD_SHARED_LIBS OFF)
 

@@ -4,7 +4,7 @@
 
 - CMake 版本≥3.11：为了支持FetchContent
 
-- C++17: 为了支持`std::filesystem`
+- C++20: 为了支持`std::filesystem`和`std::string ends_with()`
 
 本身依赖的libxml2和format用FetchContent来获取源码编译了。
 
