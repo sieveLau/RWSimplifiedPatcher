@@ -4,6 +4,7 @@ include(FetchContent)
 set(CMAKE_CXX_STANDARD 20)
 # on M1 chips, this must be off to compile libxml2
 set(BUILD_SHARED_LIBS OFF)
+set(ENABLE_LIBCXX OFF)
 
 FetchContent_Declare(libxml2
         URL
@@ -27,9 +28,9 @@ FetchContent_MakeAvailable(plog)
 include_directories(${plog_SOURCE_DIR}/include)
 
 # add_library(simplexml simple_xml.h simple_xml.cc)
-add_library(tools consts.h tools.cpp tools.h)
+# add_library(tools tools.cpp tools.h)
 # target_link_libraries(simplexml fmt::fmt LibXml2::LibXml2)
 # add_executable(RWSimplifiedPatcher consts.h main.cpp)
 # target_link_libraries(RWSimplifiedPatcher fmt::fmt simplexml tools LibXml2::LibXml2 plog::plog)
 add_executable(main test.cpp)
-target_link_libraries(main tools plog::plog LibXml2::LibXml2 fmt::fmt)
+target_link_libraries(main plog::plog LibXml2::LibXml2 fmt::fmt)
