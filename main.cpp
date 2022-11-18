@@ -1,73 +1,22 @@
+#include "consts.h"
 #include "simple_xml.h"
+#include "tools.h"
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <libxml/parser.h>
 #include <map>
 #include <memory>
 #include <vector>
-constexpr auto def_classes = "defclasses.txt";
+#include <plog/Init.h>
+#include <plog/Log.h>
+#include <plog/Appenders/ConsoleAppender.h>
+#include <plog/Formatters/TxtFormatter.h>
 
-using path = std::filesystem::path;
 using std::string;
 using std::vector;
 
-vector<path> file_walker(const string &dir) {
-  vector<path> result;
-  using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
-  for (const auto &dirEntry : recursive_directory_iterator(dir))
-    if (std::filesystem::is_regular_file(dirEntry.path())) {
-      if (dirEntry.path().filename().extension() == ".xml") {
-        result.push_back(dirEntry.path());
-        std::clog << "source file found: " << dirEntry.path().filename();
-      }
-    }
-  return result;
-}
-
-inline const char *separator() {
-#ifdef _WIN32
-  return "\\";
-#else
-  return "/";
-#endif
-}
-
-vector<string> init_defs(const path &exe_dir) {
-  std::clog << "init_defs() start";
-
-  vector<string> result;
-  path config_path = exe_dir / def_classes;
-  // std::cout<<exe_dir<<std::endl;
-  std::clog << "def classes file: " << config_path;
-
-  if (exists(config_path)) {
-    std::clog << "if(exists(config_path))";
-    string line;
-    std::ifstream in;
-    in.open(config_path);
-    while (getline(in, line)) {
-      result.push_back(line);
-      std::clog << "Read: " << line;
-    }
-    in.close();
-  } else {
-    std::clog << "if(exists(config_path))-else";
-    result.emplace_back("ThingDef");
-  }
-  std::clog << "init_defs() end";
-  return result;
-}
-#ifdef _WIN32
-std::string path_to_string(path a_path) {
-  std::string temp_buff(a_path.c_str());
-  return string(temp_buff.begin(), temp_buff.end());
-}
-#endif
-
 auto xml_parser(const std::string &path) -> std::map<std::string, std::vector<simplexml::operation>> {
-  using std::unique_ptr;
-  unique_ptr<xmlDoc, void (*)(xmlDocPtr)> doc(
+  std::unique_ptr<xmlDoc, void (*)(xmlDocPtr)> doc(
       xmlReadFile(path.c_str(), NULL, XML_PARSE_RECOVER),
       &xmlFreeDoc);
   auto *doc_root = xmlDocGetRootElement(doc.get());
@@ -79,7 +28,7 @@ auto xml_parser(const std::string &path) -> std::map<std::string, std::vector<si
     std::string def_type(reinterpret_cast<const char *>(first_level_def->name));
     // 在整个第一层里找以Def结尾的node
     if (def_type.ends_with("Def")) {
-      std::clog << "Found: " << def_type;
+      PLOG_DEBUG<< "Found: " << def_type;
       static const xmlChar *defName_str = BAD_CAST "defName";
       static const xmlChar *label_str = BAD_CAST "label";
       static const xmlChar *description_str = BAD_CAST "description";
@@ -124,22 +73,23 @@ inline void add_operation(xml_construct *construct, const std::map<std::string, 
 }
 
 int main(int argc, char **argv) {
+  using path = std::filesystem::path;
+  static plog::ConsoleAppender<plog::TxtFormatter> consoleAppender;
+  plog::init(plog::debug,&consoleAppender);
 #ifdef _WIN32
   const std::string exe_dir = path_to_string(path(argv[0]).parent_path());
 #else
   const std::string exe_dir = path(argv[0]).parent_path();
 #endif
-  // const auto defs = init_defs(exe_dir);
-
   std::string source;
   if (argc < 2) {
 #ifdef _WIN32
-    std::cerr << "no source file";
+    PLOGF <<  "no source file";
     std::cout << "usage: RWSimplifiedPatcher <Defs folder>\n";
     std::cout << "       RWSimplifiedPatcher <xml file>\n";
     exit(EXIT_FAILURE);
 #else
-    std::cout<< "source file or source dir: ";
+    printf("source file or source dir: ");
     std::getline(std::cin,source);
 #endif
   }else{
@@ -157,7 +107,7 @@ int main(int argc, char **argv) {
       add_operation(&xmlc, xml_parser(i.string()));
 #endif
   else {
-    std::cerr << "open source file(s)/directory failed";
+    PLOG_FATAL << "open source file(s)/directory failed";
     static_cast<void>(getchar());
     return -1;
   }
