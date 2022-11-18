@@ -161,7 +161,11 @@ int main(int argc, char **argv) {
     static_cast<void>(getchar());
     return -1;
   }
+#ifndef _WIN32
+  xmlc.dump();
+#else
   xmlc.dump(exe_dir + separator() + "all_patch.xml");
+#endif
   xmlCleanupParser();
   return 0;
 }
