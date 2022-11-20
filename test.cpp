@@ -1,6 +1,7 @@
 //
 // Created by Sieve Lau on 2022/11/18.
 //
+#include "helper.hpp"
 #include <filesystem>
 #include <fmt/format.h>
 #include <fstream>
@@ -14,6 +15,9 @@
 #include <set>
 #include <string>
 #include <vector>
+
+// getdefname
+// 从xpath右侧开始切"/"然后拼接"defName"，直到找到为止
 
 std::vector<std::filesystem::path> file_walker(const std::string &dir,
                                                const std::string &extension = ".xml") {
@@ -29,31 +33,10 @@ std::vector<std::filesystem::path> file_walker(const std::string &dir,
     return result;
 }
 
-inline std::string getText(xmlDocPtr doc, xmlNodePtr node) {
-    auto internal_str = xmlNodeListGetString(doc, node->xmlChildrenNode, 1);
-    std::string rval(reinterpret_cast<const char *>(internal_str));
-    xmlFree(internal_str);
-    return rval;
-}
-
-inline std::string getXPath(xmlNodePtr node) {
-    auto internal_str = xmlGetNodePath(node);
-    std::string rval(reinterpret_cast<const char *>(internal_str));
-    xmlFree(internal_str);
-    return rval;
-}
-
 void touch(const std::string &path) {
     std::ofstream output;
     output.open(path, std::ios_base::app);
     output.close();
-}
-
-std::unique_ptr<xmlXPathObject, void (*)(xmlXPathObjectPtr)> getByXPath(xmlDocPtr doc,
-                                                                        const std::string &xpath) {
-    xmlXPathContextPtr context;
-    context = xmlXPathNewContext(doc);
-    return {xmlXPathEvalExpression(BAD_CAST xpath.c_str(), context), &xmlXPathFreeObject};
 }
 
 bool getNodeSets(std::unique_ptr<xmlXPathObject, void (*)(xmlXPathObjectPtr)> xpath_result,
@@ -61,7 +44,8 @@ bool getNodeSets(std::unique_ptr<xmlXPathObject, void (*)(xmlXPathObjectPtr)> xp
     if (xmlXPathNodeSetIsEmpty(xpath_result->nodesetval)) {
         return false;
     }
-    return xpath_result->nodesetval;
+    nodeset_storage = xpath_result->nodesetval;
+    return true;
 }
 
 int main(int argc, char **argv) {
@@ -82,14 +66,14 @@ int main(int argc, char **argv) {
         std::string xml_constructor;
         xml_constructor += "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
                            "<LanguageData>\n";
-        std::string target_output_file;
+        std::string target_output_file, target_output_dir;
         bool hasContent = false;
 
         auto label_no_li_result = getByXPath(doc.get(), "//label");
-        if (!xmlXPathNodeSetIsEmpty(label_no_li_result->nodesetval)) {
-            auto nodeset = label_no_li_result->nodesetval;
-            for (auto i = 0; i < nodeset->nodeNr; i++) {
-                auto label_node = nodeset->nodeTab[i];
+        auto label_nodeset = getNodeSet(label_no_li_result.get());
+        if (!label_nodeset.empty()) {
+            for (auto *label_node : label_nodeset) {
+                //                auto label_node = nodeset->nodeTab[i];
                 auto label_text = getText(doc.get(), label_node);
                 PLOGD << "label_text: " << label_text;
                 auto xpath = getXPath(label_node);
@@ -106,13 +90,12 @@ int main(int argc, char **argv) {
                 directory = index_of_square == std::string::npos
                     ? directory.substr(0, directory.find('/'))
                     : directory.substr(0, std::min(index_of_square, index_of_slash));
-                PLOGD << "directory: "<<directory;
+                PLOGD << "directory: " << directory;
                 // 在第一次运行的时候，到这一步为止都不会输出内容，所以可以放心建立文件夹，同时对输出文件的名字进行设置
                 // 对于同一个文件，没有必要生成两次文件夹，而且输出文件肯定是同一个，所以这里只需要执行一次就可以了
                 if (!hasContent) {
-                    std::filesystem::create_directories(language_dir_prefix + directory);
-                    target_output_file =
-                        language_dir_prefix + directory + "/" + file.filename().string();
+                    target_output_dir = language_dir_prefix + directory + '/';
+                    target_output_file = target_output_dir + file.filename().string();
                 }
                 // 首先确定当前的label是不是某个li里的元素
                 auto xpath_li_index = xpath.find("li[");
@@ -121,13 +104,14 @@ int main(int argc, char **argv) {
                     // 以便生成Dot Notation，类似<defName.label>的结构
                     auto defName_result =
                         getByXPath(doc.get(), xpath.substr(0, xpath.rfind('/') + 1) + "defName");
-                    auto defName_nodeset = defName_result->nodesetval;
-                    if (!xmlXPathNodeSetIsEmpty(defName_nodeset)) {
-                        auto defName = getText(doc.get(), defName_nodeset->nodeTab[0]);
+                    auto defName_nodeset = getNodeSet(defName_result.get());
+                    if (!defName_nodeset.empty()) {
+                        auto defName = getText(doc.get(), defName_nodeset[0]);
                         xml_constructor +=
                             fmt::format("<{0}.label>{1}</{0}.label>\n", defName, label_text);
                         // 找到了需要输出的内容，所以要把这个flag设置成true
                         hasContent = true;
+                        assert(defName == getDefName(doc.get(), xpath));
                     }
                 } else {
                     // 这里处理的就是作为某个li元素里面的label了
@@ -138,17 +122,18 @@ int main(int argc, char **argv) {
                     // 获取一个mark，标记li的上级tag（即"tools"）的位置，方便后面生成Dot Notation
                     auto mark = temp_str.size();
                     temp_str.append("defName");
-                    PLOGD << "[label in li]defName XPath:"<<temp_str;
+                    PLOGD << "[label in li]defName XPath:" << temp_str;
                     auto temp_result = getByXPath(doc.get(), temp_str);
                     auto label_in_li_defName_nodeset = temp_result->nodesetval;
                     if (!xmlXPathNodeSetIsEmpty(label_in_li_defName_nodeset)) {
-                        auto li_defName = getText(doc.get(), label_in_li_defName_nodeset->nodeTab[0]);
+                        auto li_defName =
+                            getText(doc.get(), label_in_li_defName_nodeset->nodeTab[0]);
                         auto name = xpath.substr(mark, xpath.find('/', mark) - mark);
                         auto li_number =
                             atoi(xpath.substr(xpath_li_index + strlen("li["), 1).c_str()) - 1;
                         auto final_tag_name =
-                            fmt::format("<{0}.{1}.{2}.label>{3}</{0}.{1}.{2}.label>\n",
-                                        li_defName, name, li_number, label_text);
+                            fmt::format("<{0}.{1}.{2}.label>{3}</{0}.{1}.{2}.label>\n", li_defName,
+                                        name, li_number, label_text);
                         xml_constructor += final_tag_name;
                         hasContent = true;
                     }
@@ -172,9 +157,8 @@ int main(int argc, char **argv) {
                     directory = index_of_square == std::string::npos
                         ? directory.substr(0, directory.find('/'))
                         : directory.substr(0, std::min(index_of_square, index_of_slash));
-                    std::filesystem::create_directories(language_dir_prefix + directory);
-                    target_output_file =
-                        language_dir_prefix + directory + "/" + file.filename().string();
+                    target_output_dir = language_dir_prefix + directory + '/';
+                    target_output_file = target_output_dir + file.filename().string();
                 }
                 auto xpath_has_li = xpath.find("li[") != std::string::npos;
                 if (!xpath_has_li) {
@@ -193,7 +177,7 @@ int main(int argc, char **argv) {
         }
 
         if (hasContent) {
-
+            std::filesystem::create_directories(target_output_dir);
             xml_constructor += "</LanguageData>\n";
             std::ofstream output;
             output.open(target_output_file, std::ios_base::trunc);
