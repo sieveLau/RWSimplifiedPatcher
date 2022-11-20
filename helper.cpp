@@ -1,5 +1,5 @@
 #include "helper.hpp"
-
+#include <regex>
 std::string getXPath(xmlNodePtr node) {
     auto internal_str = xmlGetNodePath(node);
     std::string rval(reinterpret_cast<const char *>(internal_str));
@@ -49,32 +49,33 @@ std::string getDefNameFromXPath(xmlDocPtr doc, const std::string &node_xpath) {
 }
 
 std::string getliParentTagName(const std::string &xpath_containing_li) {
-    auto index_of_li = xpath_containing_li.find("li[");
-    if (index_of_li == std::string::npos)
-        return "";
-    auto index_of_tag = xpath_containing_li.rfind('/', index_of_li - 2);
-    return xpath_containing_li.substr(index_of_tag + 1, index_of_li - 2 - index_of_tag);
+    std::regex li_pattern("/(\\w*)/li(\\[|/)");
+    std::smatch li_match;
+    if (std::regex_search(xpath_containing_li, li_match, li_pattern)) {
+        return li_match[1];
+    }
+    throw std::runtime_error("Invalid xpath: no li found");
 }
 
 bool getliNumber(const std::string &xpath_containing_li, long *result) {
-    std::string literal_li_square = "li[";
-    auto index_of_li = xpath_containing_li.find(literal_li_square);
-    if (index_of_li == std::string::npos)
-        return false;
-    auto begin = index_of_li + literal_li_square.length();
-    *result = strtol(xpath_containing_li.substr(begin).c_str(), nullptr, 10);
-    return true;
+    std::regex li_number_pattern(R"(/\w*/li\[(\d*)\]/)");
+    std::smatch li_match;
+    if (std::regex_search(xpath_containing_li, li_match, li_number_pattern)) {
+        *result = atol(li_match[1].str().c_str()) - 1;
+        return true;
+    }
+    return false;
 }
 
 std::string getOutputDirectory(const std::string &xpath) {
-    auto* prefix = "/Defs/";
+    auto *prefix = "/Defs/";
     const auto prefix_length = strlen(prefix);
     // 要输出的文件所在的目录名，是根据xpath里的"/Defs/"后面暴露出来的"MyNameSpace.MyCustomDef"来确定的
     // 首先把"/Defs/"去掉
     auto directory = xpath.substr(xpath.find_first_of(prefix) + prefix_length);
-    if(directory.empty()){
+    if (directory.empty()) {
         auto info = "Invalid xpath: " + xpath;
-        PLOG_FATAL<< info;
+        PLOG_FATAL << info;
         throw std::runtime_error(info);
     }
     // 然后准备裁掉后面的部分，但是可能会遇到带[]的Def
