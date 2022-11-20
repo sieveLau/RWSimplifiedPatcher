@@ -5,6 +5,11 @@ set(CMAKE_CXX_STANDARD 20)
 # on M1 chips, this must be off to compile libxml2
 set(BUILD_SHARED_LIBS OFF)
 #set(ENABLE_LIBCXX OFF)
+if (APPLE)
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-3")
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -gdwarf-3")
+endif ()
+
 
 FetchContent_Declare(libxml2
         URL
