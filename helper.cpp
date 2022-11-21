@@ -25,7 +25,8 @@ std::vector<xmlNodePtr> getNodeSet(const xmlXPathObject *xpath_result) {
     auto nodeTab = nodeset_origin->nodeTab;
     auto nodeNumbers = nodeset_origin->nodeNr;
     std::vector<xmlNodePtr> result;
-    for (int i = 0; i < nodeNumbers; ++i) {
+    result.reserve(nodeNumbers);
+for (int i = 0; i < nodeNumbers; ++i) {
         result.emplace_back(nodeTab[i]);
     }
     return result;

@@ -2,12 +2,14 @@
 // Created by Sieve Lau on 2022/11/18.
 //
 #include "helper.hpp"
+#include "shared.hpp"
+#include <cstddef>
 #include <filesystem>
 #include <fmt/format.h>
 #include <fstream>
+#include <ios>
 #include <iostream>
 #include <libxml/parser.h>
-#include <libxml/xpath.h>
 #include <map>
 #include <plog/Appenders/ConsoleAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
@@ -16,9 +18,6 @@
 #include <set>
 #include <string>
 #include <vector>
-
-// getdefname
-// 从xpath右侧开始切"/"然后拼接"defName"，直到找到为止
 
 std::vector<std::filesystem::path> file_walker(const std::string &dir,
                                                const std::string &extension = ".xml") {
@@ -34,26 +33,12 @@ std::vector<std::filesystem::path> file_walker(const std::string &dir,
     return result;
 }
 
-void touch(const std::string &path) {
-    std::ofstream output;
-    output.open(path, std::ios_base::app);
-    output.close();
-}
-
-bool getNodeSets(std::unique_ptr<xmlXPathObject, void (*)(xmlXPathObjectPtr)> xpath_result,
-                 xmlNodeSetPtr nodeset_storage) {
-    if (xmlXPathNodeSetIsEmpty(xpath_result->nodesetval)) {
-        return false;
-    }
-    nodeset_storage = xpath_result->nodesetval;
-    return true;
-}
-
 std::string init_search_list() {
     std::string result;
-    const char *keywords[]{"label", "labelPlural", "description",
-                           "title", "titleShort",  "baseDescription",
-                           "verb",  "gerund",      "reportString"};
+    const char *keywords[]{"label",       "labelPlural",       "labelMale",   "labelMalePlural",
+                           "labelFemale", "labelFemalePlural", "description", "title",
+                           "titleShort",  "baseDescription",   "verb",        "gerund",
+                           "reportString"};
     for (auto *keyword : keywords) {
         result += fmt::format("//{} |", keyword);
     }
@@ -63,67 +48,83 @@ std::string init_search_list() {
 
 int main(int argc, char **argv) {
     static plog::ConsoleAppender<plog::TxtFormatter> consoleAppender;
+#ifndef NDEBUG
     plog::init(plog::debug, &consoleAppender);
-    std::string language_dir_prefix = "Languages/ChineseSimplified/DefInjected/";
-    std::string input;
-
+#else
+    plog::init(plog::warning, &consoleAppender);
+#endif
     std::map<std::string, std::vector<std::string>> output_map;
     std::vector<std::string> dir_to_create;
 
-    if (argc <= 2) {
+    auto language_dir_prefix = getDirectoryPrefix();
+    std::string input;
+    switch (argc) {
+    case 1:
+    case 2:
         std::cout << "outputDir: ";
         std::getline(std::cin, input);
         language_dir_prefix = input + language_dir_prefix;
         std::cout << "DefsDir: ";
         input.clear();
         std::getline(std::cin, input);
-    } else {
-        language_dir_prefix = argv[1] + language_dir_prefix;
+        break;
+    case 3:
         input = argv[2];
+        language_dir_prefix = argv[1] + language_dir_prefix;
+        break;
+    default: std::cerr << "Too many arguments!"; exit(-1);
     }
+
+    std::set<std::string> keys;
 
     for (auto &&file : file_walker(input)) {
         std::unique_ptr<xmlDoc, void (*)(xmlDocPtr)> doc(
-            xmlReadFile(file.c_str(), NULL, XML_PARSE_RECOVER), &xmlFreeDoc);
+            xmlReadFile(file.c_str(), nullptr, XML_PARSE_RECOVER), &xmlFreeDoc);
         std::string target_output_file, target_output_dir;
 
         auto xpath_result = getByXPath(doc.get(), init_search_list());
         auto match_nodeset = getNodeSet(xpath_result.get());
+
         if (!match_nodeset.empty()) {
             for (auto *current_node : match_nodeset) {
-                //                auto current_node = nodeset->nodeTab[i];
                 auto nodeText = getText(doc.get(), current_node);
                 PLOGD << "nodeText: " << nodeText;
                 auto xpath = getXPath(current_node);
                 PLOGD << "xmlGetNodePath: " << xpath;
                 // 要输出的文件所在的目录名，是根据xpath里的"/Defs/"后面暴露出来的"MyNameSpace.MyCustomDef"来确定的
                 auto directory = getOutputDirectory(xpath);
-                // 在第一次运行的时候，到这一步为止都不会输出内容，所以可以放心建立文件夹，同时对输出文件的名字进行设置
-                // 对于同一个文件，没有必要生成两次文件夹，而且输出文件肯定是同一个，所以这里只需要执行一次就可以了
-
                 target_output_dir = language_dir_prefix + directory + '/';
                 target_output_file = target_output_dir + file.filename().string();
 
-                // 首先确定当前的label是不是某个li里的元素
                 auto defName = getDefNameFromXPath(doc.get(), xpath);
                 // 根据xpath最末尾的一部分来确定是什么tag
                 auto what_type = xpath.substr(xpath.rfind('/') + 1);
+
                 if (!defName.empty()) {
+                    if ((what_type != "description") && (what_type != "baseDescription")
+                        && (what_type != "reportString"))
+                        keys.insert(nodeText);
                     if (!(str_contains(xpath, "li[") || str_contains(xpath, "li/"))) {
-                        // 如果只是一个普通的label，就用xpath来获取它所属的defName
-                        // 以便生成Dot Notation，类似<defName.label>的结构
+                        // 如果只是一个普通的label
                         output_map[target_output_file].emplace_back(
                             fmt::format("<{0}.{1}>{2}</{0}.{1}>\n", defName, what_type, nodeText));
-                        // 找到了需要输出的内容，所以要把这个flag设置成true
                     } else {
                         // 这里处理的就是作为某个li元素里面的label了
                         // 例子是/Defs/AlienRace.ThingDef_AlienRace/tools/li[1]/label
                         auto name = getliParentTagName(xpath);
                         long int li_number;
+                        // 有的li有序号，有的没有
                         if (getliNumber(xpath, &li_number)) {
                             auto final_tag_name =
-                                fmt::format("<{0}.{1}.{2}.{3}>{4}</{0}.{1}.{2}.{3}>\n", defName,
-                                            name, li_number, what_type, nodeText);
+                                // clang-format off
+                                fmt::format("<{defName}.{liName}.{liNumber}.{type}>{text}</{defName}.{liName}.{liNumber}.{type}>\n",
+                                            fmt::arg("defName",defName),
+                                            fmt::arg("liName", name),
+                                            fmt::arg("liNumber", li_number),
+                                            fmt::arg("type", what_type),
+                                            fmt::arg("text", nodeText)
+                                            );
+                            // clang-format on
                             output_map[target_output_file].emplace_back(final_tag_name);
                         } else
                             // clang-format off
@@ -131,7 +132,6 @@ int main(int argc, char **argv) {
                                 "<{defName}.{liName}.0.{type}>{text}</{defName}.{liName}.0.{type}>\n",
                                 fmt::arg("defName", defName),
                                 fmt::arg("liName", name),
-                                fmt::arg("tagName", nodeText),
                                 fmt::arg("type", what_type),
                                 fmt::arg("text", nodeText)));
                         // clang-format on
@@ -143,7 +143,11 @@ int main(int argc, char **argv) {
     }
 
     for (auto &&dir : dir_to_create) {
-        std::filesystem::create_directories(dir);
+        try {
+            std::filesystem::create_directories(dir);
+        } catch (std::exception &e) {
+            PLOG_WARNING << "Create directory " + dir + " failed, skipping.";
+        }
     }
 
     for (const auto &pair : output_map) {
@@ -160,6 +164,16 @@ int main(int argc, char **argv) {
             output.close();
         } else
             PLOG_WARNING << "Can't write to " << target_output_file << ", skipping.";
+    }
+
+    std::ofstream output;
+    output.open(language_dir_prefix + "pairs.txt", std::ios_base::trunc);
+    if (output.is_open()) {
+        for (auto &&key : keys) {
+
+            output << key << ":\n";
+        }
+        output.close();
     }
     return 0;
 }
