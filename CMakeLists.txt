@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.11)
 project(RWSimplifiedPatcher VERSION 1.0)
 include(FetchContent)
 set(CMAKE_CXX_STANDARD 20)
-# on M1 chips, this must be off to compile libxml2
-set(BUILD_SHARED_LIBS OFF)
-#set(ENABLE_LIBCXX OFF)
+
 if (APPLE)
+    # on M1 chips, this must be off to compile libxml2
+    set(BUILD_SHARED_LIBS OFF)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -gdwarf-3")
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -gdwarf-3")
 endif ()
@@ -41,5 +41,7 @@ add_library(helper helper.hpp helper.cpp)
 add_executable(main test.cpp shared.hpp)
 target_link_libraries(main plog::plog LibXml2::LibXml2 fmt::fmt helper)
 
+if (APPLE)
 add_executable(replace replace.cpp)
 target_link_libraries(replace fmt::fmt)
+endif()
