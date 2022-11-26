@@ -1,161 +1,179 @@
-#include "simple_xml.h"
+//
+// Created by Sieve Lau on 2022/11/18.
+//
+#include "helper.hpp"
+#include "shared.hpp"
+#include <cstddef>
 #include <filesystem>
-#include <iostream>
+#include <fmt/format.h>
 #include <fstream>
+#include <ios>
+#include <iostream>
 #include <libxml/parser.h>
-#include <vector>
-#include <boost/log/trivial.hpp>
-#include <memory>
 #include <map>
-constexpr auto def_classes = "defclasses.txt";
+#include <plog/Appenders/ConsoleAppender.h>
+#include <plog/Formatters/TxtFormatter.h>
+#include <plog/Init.h>
+#include <plog/Log.h>
+#include <set>
+#include <string>
+#include <vector>
 
-
-using path = std::filesystem::path;
-using std::vector;
-using std::string;
-
-
-vector<path> file_walker(const string& dir)
-{
-	vector<path> result;
-	using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
-	for (const auto& dirEntry : recursive_directory_iterator(dir))
-		if (std::filesystem::is_regular_file(dirEntry.path()))
-		{
-			if (dirEntry.path().filename().extension() == ".xml")
-			{
-				result.push_back(dirEntry.path());
-				BOOST_LOG_TRIVIAL(debug) << "source file found: " << dirEntry.path().filename();
-			}
-		}
-	return result;
+std::vector<std::filesystem::path> file_walker(const std::string &dir,
+                                               const std::string &extension = ".xml") {
+    std::vector<std::filesystem::path> result;
+    using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
+    for (const auto &dirEntry : recursive_directory_iterator(dir))
+        if (std::filesystem::is_regular_file(dirEntry.path())) {
+            if (dirEntry.path().filename().extension() == extension) {
+                result.push_back(dirEntry.path());
+                PLOGD << "source file found: " << dirEntry.path().filename();
+            }
+        }
+    return result;
 }
 
-inline const char* separator()
-{
-#ifdef _WIN32
-	return "\\";
+std::string init_search_list() {
+    std::string result;
+    const char *keywords[]{"label",       "labelPlural",       "labelMale",   "labelMalePlural",
+                           "labelFemale", "labelFemalePlural", "description", "title",
+                           "titleShort",  "baseDescription",   "verb",        "gerund",
+                           "reportString"};
+    for (auto *keyword : keywords) {
+        result += fmt::format("//{} |", keyword);
+    }
+    result.pop_back();
+    return result;
+}
+
+int main(int argc, char **argv) {
+    static plog::ConsoleAppender<plog::TxtFormatter> consoleAppender;
+#ifndef NDEBUG
+    plog::init(plog::debug, &consoleAppender);
 #else
-    return "/";
+    plog::init(plog::warning, &consoleAppender);
 #endif
-}
+    std::map<std::string, std::vector<std::string>> output_map;
+    std::vector<std::string> dir_to_create;
 
-vector<string> init_defs(path exe_dir)
-{
-	BOOST_LOG_TRIVIAL(trace) << "init_defs() start";
+    auto language_dir_prefix = getDirectoryPrefix();
+    std::string input;
+    switch (argc) {
+    case 1:
+    case 2:
+        std::cout << "outputDir: ";
+        std::getline(std::cin, input);
+        language_dir_prefix = input + language_dir_prefix;
+        std::cout << "DefsDir: ";
+        input.clear();
+        std::getline(std::cin, input);
+        break;
+    case 3:
+        input = argv[2];
+        language_dir_prefix = argv[1] + language_dir_prefix;
+        break;
+    default: std::cerr << "Too many arguments!"; exit(-1);
+    }
 
-	vector<string> result;
-	path config_path = exe_dir / def_classes;;
-	// std::cout<<exe_dir<<std::endl;
-	BOOST_LOG_TRIVIAL(info) << "def classes file: " << config_path;
+    std::set<std::string> keys;
 
-	if (exists(config_path))
-	{
-		BOOST_LOG_TRIVIAL(trace) << "if(exists(config_path))";
-		string line;
-		std::ifstream in;
-		in.open(config_path);
-		while (getline(in, line))
-		{
-			result.push_back(line);
-			BOOST_LOG_TRIVIAL(info) << "Read: " << line;
-		}
-		in.close();
-	}
-	else
-	{
-		BOOST_LOG_TRIVIAL(trace) << "if(exists(config_path))-else";
-		result.push_back("ThingDef");
-	}
-	BOOST_LOG_TRIVIAL(trace) << "init_defs() end";
-	return result;
-}
+    for (auto &&file : file_walker(input)) {
+        std::unique_ptr<xmlDoc, void (*)(xmlDocPtr)> doc(
+            xmlReadFile(file.string().c_str(), nullptr, XML_PARSE_RECOVER), &xmlFreeDoc);
+        std::string target_output_file, target_output_dir;
 
-std::string path_to_string(path a_path)
-{
-	std::wstring temp_buff(a_path.c_str());
-	return string(temp_buff.begin(), temp_buff.end());
-}
+        auto xpath_result = getByXPath(doc.get(), init_search_list());
+        auto match_nodeset = getNodeSet(xpath_result.get());
 
-auto xml_parser(std::string path) -> std::map<std::string, std::vector<simplexml::operation>>
-{
-	using std::unique_ptr;
-	unique_ptr<xmlDoc, void(*)(xmlDocPtr)> doc(xmlReadFile(path.c_str(), NULL, XML_PARSE_RECOVER), &xmlFreeDoc);
-	auto* doc_root = xmlDocGetRootElement(doc.get());
-	std::map<std::string, std::vector<simplexml::operation>> xml_cache;
+        if (!match_nodeset.empty()) {
+            for (auto *current_node : match_nodeset) {
+                auto nodeText = getText(doc.get(), current_node);
+                PLOGD << "nodeText: " << nodeText;
+                auto xpath = getXPath(current_node);
+                PLOGD << "xmlGetNodePath: " << xpath;
+                // 要输出的文件所在的目录名，是根据xpath里的"/Defs/"后面暴露出来的"MyNameSpace.MyCustomDef"来确定的
+                auto directory = getOutputDirectory(xpath);
+                target_output_dir = language_dir_prefix + directory + '/';
+                target_output_file = target_output_dir + file.filename().string();
 
-	for (auto* first_level_def = doc_root->xmlChildrenNode; first_level_def; first_level_def =
-		first_level_def->next)
-	{
-		std::string def_type(reinterpret_cast<const char*>(first_level_def->name));
-		if (def_type.ends_with("Def"))
-		{
-			BOOST_LOG_TRIVIAL(info) << "Found: " << def_type;
-			static const xmlChar* defName_str = BAD_CAST"defName";
-			static const xmlChar* label_str = BAD_CAST"label";
-			static const xmlChar* description_str = BAD_CAST"description";
-			simplexml::operation a_operation({def_type});
-			bool ready = false;
-			for (auto* second_level_element = first_level_def->children; second_level_element; second_level_element =
-			     second_level_element->next)
-			{
-				if (!xmlStrcmp(second_level_element->name, defName_str))
-				{
-					a_operation.defName = reinterpret_cast<const char*>(xmlNodeListGetString(
-						doc.get(), second_level_element->children, 1));
-					ready = true;
-					continue;
-				}
-				if (!xmlStrcmp(second_level_element->name, label_str))
-				{
-					a_operation.tag = "label";
-					a_operation.value = reinterpret_cast<const char*>(xmlNodeListGetString(
-						doc.get(), second_level_element->children, 1));
-					if (ready)xml_cache[def_type].push_back(a_operation);
-					continue;
-				}
-				if (!xmlStrcmp(second_level_element->name, description_str))
-				{
-					a_operation.tag = "description";
-					a_operation.value = reinterpret_cast<const char*>(xmlNodeListGetString(
-						doc.get(), second_level_element->children, 1));
-					if (ready)xml_cache[def_type].push_back(a_operation);
-				}
-			}
-		}
-	}
-	return xml_cache;
-}
+                auto defName = getDefNameFromXPath(doc.get(), xpath);
+                // 根据xpath最末尾的一部分来确定是什么tag
+                auto what_type = xpath.substr(xpath.rfind('/') + 1);
 
-inline void add_operation(xml_construct* construct, std::map<std::string, std::vector<simplexml::operation>> cache_map)
-{
-	for (auto const& [key, val] : cache_map)
-		for (auto&& item : val)
-			construct->add_replace_operation(item);
-}
+                if (!defName.empty()) {
+                    if ((what_type != "description") && (what_type != "baseDescription")
+                        && (what_type != "reportString"))
+                        keys.insert(nodeText);
+                    if (!(str_contains(xpath, "li[") || str_contains(xpath, "li/"))) {
+                        // 如果只是一个普通的label
+                        output_map[target_output_file].emplace_back(
+                            fmt::format("<{0}.{1}>{2}</{0}.{1}>\n", defName, what_type, nodeText));
+                    } else {
+                        // 这里处理的就是作为某个li元素里面的label了
+                        // 例子是/Defs/AlienRace.ThingDef_AlienRace/tools/li[1]/label
+                        auto name = getliParentTagName(xpath);
+                        long int li_number;
+                        // 有的li有序号，有的没有
+                        if (getliNumber(xpath, &li_number)) {
+                            auto final_tag_name =
+                                // clang-format off
+                                fmt::format("<{defName}.{liName}.{liNumber}.{type}>{text}</{defName}.{liName}.{liNumber}.{type}>\n",
+                                            fmt::arg("defName",defName),
+                                            fmt::arg("liName", name),
+                                            fmt::arg("liNumber", li_number),
+                                            fmt::arg("type", what_type),
+                                            fmt::arg("text", nodeText)
+                                            );
+                            // clang-format on
+                            output_map[target_output_file].emplace_back(final_tag_name);
+                        } else
+                            // clang-format off
+                            output_map[target_output_file].emplace_back(fmt::format(
+                                "<{defName}.{liName}.0.{type}>{text}</{defName}.{liName}.0.{type}>\n",
+                                fmt::arg("defName", defName),
+                                fmt::arg("liName", name),
+                                fmt::arg("type", what_type),
+                                fmt::arg("text", nodeText)));
+                        // clang-format on
+                    }
+                    dir_to_create.emplace_back(target_output_dir);
+                }
+            }
+        }
+    }
 
-int main(int argc, char** argv)
-{
-	const std::string exe_dir = path_to_string(path(argv[0]).parent_path());
-	// const auto defs = init_defs(exe_dir);
-	if (argc < 2)
-	{
-		BOOST_LOG_TRIVIAL(fatal) << "no source file";
-		std::cout << "usage: RWSimplifiedPatcher.exe <Defs folder>\n";
-		std::cout << "       RWSimplifiedPatcher.exe <xml file>"<<std::endl;
-		exit(EXIT_FAILURE);
-	}
-	xml_construct xmlc;
-	if (std::filesystem::is_regular_file(argv[1])) add_operation(&xmlc, xml_parser(argv[1]));
-	else if (std::filesystem::is_directory(argv[1])) 
-		for (auto&& i : file_walker(argv[1])) add_operation(&xmlc, xml_parser(path_to_string(i)));
-	else
-	{
-		BOOST_LOG_TRIVIAL(fatal) << "open source file(s)/directory failed";
-		static_cast<void>(getchar());
-		return -1;
-	}
-	xmlc.dump(exe_dir + separator() + "all_patch.xml");
-	xmlCleanupParser();
-	return 0;
+    for (auto &&dir : dir_to_create) {
+        try {
+            std::filesystem::create_directories(dir);
+        } catch (std::exception &e) {
+            PLOG_WARNING << "Create directory " + dir + " failed, skipping.";
+        }
+    }
+
+    for (const auto &pair : output_map) {
+        auto &&target_output_file = pair.first;
+        std::ofstream output;
+        output.open(target_output_file, std::ios_base::trunc);
+        if (output.is_open()) {
+            output << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+                      "<LanguageData>\n";
+            for (auto &&line : pair.second) {
+                output << line;
+            }
+            output << "</LanguageData>\n";
+            output.close();
+        } else
+            PLOG_WARNING << "Can't write to " << target_output_file << ", skipping.";
+    }
+
+    std::ofstream output;
+    output.open(language_dir_prefix + "pairs.txt", std::ios_base::trunc);
+    if (output.is_open()) {
+        for (auto &&key : keys) {
+
+            output << key << ":\n";
+        }
+        output.close();
+    }
+    return 0;
 }
