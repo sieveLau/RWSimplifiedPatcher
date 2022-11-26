@@ -147,15 +147,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="helper.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="defclasses.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="helper.hpp" />
     <ClInclude Include="shared.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="helper\helper.vcxproj">
+      <Project>{2688b90e-0191-4cfe-8659-8f77d178ffd8}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

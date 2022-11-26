@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{15233ecf-d6ec-4bc8-9a99-77081552207f}</ProjectGuid>
-    <RootNamespace>replace</RootNamespace>
+    <ProjectGuid>{2688b90e-0191-4cfe-8659-8f77d178ffd8}</ProjectGuid>
+    <RootNamespace>helper</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -40,7 +40,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -128,12 +128,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="replace.cpp" />
+    <ClInclude Include="..\helper.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\helper\helper.vcxproj">
-      <Project>{2688b90e-0191-4cfe-8659-8f77d178ffd8}</Project>
-    </ProjectReference>
+    <ClCompile Include="..\helper.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

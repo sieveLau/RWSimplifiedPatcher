@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RWSimplifiedPatcher", "RWSi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "replace", "replace\replace.vcxproj", "{15233ECF-D6EC-4BC8-9A99-77081552207F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "helper", "helper\helper.vcxproj", "{2688B90E-0191-4CFE-8659-8F77D178FFD8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -31,6 +33,14 @@ Global
 		{15233ECF-D6EC-4BC8-9A99-77081552207F}.Release|x64.Build.0 = Release|x64
 		{15233ECF-D6EC-4BC8-9A99-77081552207F}.Release|x86.ActiveCfg = Release|Win32
 		{15233ECF-D6EC-4BC8-9A99-77081552207F}.Release|x86.Build.0 = Release|Win32
+		{2688B90E-0191-4CFE-8659-8F77D178FFD8}.Debug|x64.ActiveCfg = Debug|x64
+		{2688B90E-0191-4CFE-8659-8F77D178FFD8}.Debug|x64.Build.0 = Debug|x64
+		{2688B90E-0191-4CFE-8659-8F77D178FFD8}.Debug|x86.ActiveCfg = Debug|Win32
+		{2688B90E-0191-4CFE-8659-8F77D178FFD8}.Debug|x86.Build.0 = Debug|Win32
+		{2688B90E-0191-4CFE-8659-8F77D178FFD8}.Release|x64.ActiveCfg = Release|x64
+		{2688B90E-0191-4CFE-8659-8F77D178FFD8}.Release|x64.Build.0 = Release|x64
+		{2688B90E-0191-4CFE-8659-8F77D178FFD8}.Release|x86.ActiveCfg = Release|Win32
+		{2688B90E-0191-4CFE-8659-8F77D178FFD8}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
