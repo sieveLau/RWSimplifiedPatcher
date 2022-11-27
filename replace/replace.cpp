@@ -2,7 +2,6 @@
 #pragma warning(disable : 4996)
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 #define _CRT_SECURE_NO_WARNINGS
-#include <Windows.h>
 #endif
 
 #include "../helper/helper.hpp"

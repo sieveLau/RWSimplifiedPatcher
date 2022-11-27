@@ -1,23 +1,8 @@
 #include "helper.hpp"
 
-std::wstring xmlCharToWideString(const xmlChar *xmlString) {
-    if (!xmlString) {
-        PLOGF << "provided string was null";
-        abort();
-    }//provided string was null
-    try {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> conv;
-        return conv.from_bytes((const char *) xmlString);
-    } catch (const std::range_error &e) {
-        PLOGF << e.what();
-        abort();//wstring_convert failed
-    }
-}
-
 std::wstring s2ws(const std::string &str) {
     using convert_typeX = std::codecvt_utf8<wchar_t>;
     std::wstring_convert<convert_typeX, wchar_t> converterX;
-
     return converterX.from_bytes(str);
 }
 
@@ -26,6 +11,19 @@ std::string ws2s(const std::wstring &wstr) {
     std::wstring_convert<convert_typeX, wchar_t> converterX;
 
     return converterX.to_bytes(wstr);
+}
+
+std::wstring xmlCharToWideString(const xmlChar *xmlString) {
+    if (!xmlString) {
+        PLOGF << "provided string was null";
+        abort();
+    }
+    try {
+        return s2ws((const char *) xmlString);
+    } catch (const std::exception &e) {
+        PLOGF << e.what();
+        abort();//wstring_convert failed
+    }
 }
 
 std::wstring getXPath(xmlNodePtr node) {
@@ -78,7 +76,7 @@ std::wstring getDefNameFromXPath(xmlDocPtr doc, const std::wstring &node_xpath) 
     return L"";
 }
 
-std::wstring getliParentTagName(const std::wstring &xpath_containing_li) {
+std::wstring get_li_parent_tag_name(const std::wstring &xpath_containing_li) {
     std::wregex li_pattern(L"/(\\w*)/li(\\[|/)");
     std::wsmatch li_match;
     if (std::regex_search(xpath_containing_li, li_match, li_pattern)) {
@@ -87,7 +85,7 @@ std::wstring getliParentTagName(const std::wstring &xpath_containing_li) {
     throw std::runtime_error("Invalid xpath: no li found");
 }
 
-bool getliNumber(const std::wstring &xpath_containing_li, long *result) {
+bool get_li_number(const std::wstring &xpath_containing_li, long *result) {
     std::wregex li_number_pattern(LR"(/\w*/li\[(\d*)\]/)");
     std::wsmatch li_match;
     if (std::regex_search(xpath_containing_li, li_match, li_number_pattern)) {

@@ -3,7 +3,6 @@
 //
 
 #ifdef WIN32
-#include <Windows.h>
 #endif
 
 #include "helper/helper.hpp"
@@ -110,10 +109,10 @@ int main(int argc, char **argv) {
                     } else {
                         // 这里处理的就是作为某个li元素里面的label了
                         // 例子是/Defs/AlienRace.ThingDef_AlienRace/tools/li[1]/label
-                        auto name = getliParentTagName(xpath);
+                        auto name = get_li_parent_tag_name(xpath);
                         long int li_number;
                         // 有的li有序号，有的没有
-                        if (getliNumber(xpath, &li_number)) {
+                        if (get_li_number(xpath, &li_number)) {
                             auto final_tag_name =
                                 // clang-format off
                                 fmt::format(L"<{defName}.{liName}.{liNumber}.{type}>{text}</{defName}.{liName}.{liNumber}.{type}>\n",

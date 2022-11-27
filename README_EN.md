@@ -1,3 +1,5 @@
+Warning: Hasn't been updated. Please use Google Translate to read README.md
+
 ## Compile Requirement
 
 - c++20: for `std::format` and `std::filesystem`

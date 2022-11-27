@@ -2,9 +2,6 @@
 
 #ifdef WIN32
 #pragma warning(disable : 4996)
-
-#include <Windows.h>
-
 #define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -40,9 +37,9 @@ std::vector<xmlNodePtr> getNodeSet(const xmlXPathObject *xpath_result);
 
 std::wstring getDefNameFromXPath(xmlDocPtr doc, const std::wstring &node_xpath);
 
-std::wstring getliParentTagName(const std::wstring &xpath_containing_li);
+std::wstring get_li_parent_tag_name(const std::wstring &xpath_containing_li);
 
-bool getliNumber(const std::wstring &xpath_containing_li, long *result);
+bool get_li_number(const std::wstring &xpath_containing_li, long *result);
 
 /**
  * generate corresponding output directory for this xpath

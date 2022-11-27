@@ -1,12 +1,15 @@
 ## 编译要求
 
-cpp分支是sln格式（CMake在Windows上实在搞不定libxml2），linux和mac的CMake分支基本是同步的。在Windows上建议使用[vcpkg](https://github.com/microsoft/vcpkg)
+cpp分支是sln格式。cmake分支当前正在Windows上的优化，Mac和Linux平台暂时还没有测试，应该会缺少一些header。在Windows上建议使用[vcpkg](https://github.com/microsoft/vcpkg)
 安装依赖。只测试了64位系统（x64-windows和arm64）。
 
 - C++20
 - plog
 - libxml2
 - fmt
+
+编译前请自行添加cmake命令行参数指向你的`vcpkg.cmake`
+，例如`-DCMAKE_TOOLCHAIN_FILE=D:/vcpkg/scripts/buildsystems/vcpkg.cmake`。
 
 ## 用法
 
@@ -35,8 +38,7 @@ cpp分支是sln格式（CMake在Windows上实在搞不定libxml2），linux和ma
 xml的方法翻译了[WallStuff](https://steamcommunity.com/sharedfiles/filedetails/?id=1994340640)
 的defs。然后我发现这个xml生成过程是可以自动化的……~~
 
-最近趁休假，重新按照本来应该用的翻译方式[Mod_folder_structure](https://rimworldwiki.com/wiki/Modding_Tutorials/Mod_folder_structure#The
-Languages folder)
+最近趁休假，重新按照本来应该用的翻译方式[Mod_folder_structure](https://rimworldwiki.com/wiki/Modding_Tutorials/Mod_folder_structure#The_Languages_folder)
 ，参考[Rimworld Mod教程 第七章：翻译包文件](https://blog.csdn.net/qq_58145131/article/details/123726403)
 ，重写了程序。
 
@@ -56,5 +58,6 @@ xml。~~
 
 ## Todo
 
-- [ ] 自动读取和成成About.xml
-- [ ] ~~[ ] [[notlikely]] GUI~~
+- [ ] 自动读取和生成汉化Mod的所有结构
+- [ ] Mac平台的wchar_t支持测试
+- [ ] 简单的图形界面
