@@ -1,9 +1,14 @@
 //
 // Created by Sieve Lau on 2022/11/18.
 //
+
+#ifdef WIN32
+#include <Windows.h>
+#endif
+
 #include "helper/helper.hpp"
 #include "shared.hpp"
-#include <cstddef>
+#include <codecvt>
 #include <filesystem>
 #include <fmt/format.h>
 #include <fmt/xchar.h>
@@ -19,27 +24,14 @@
 #include <set>
 #include <string>
 #include <vector>
-#include <codecvt>
-#include <windows.h>
-#include <stringapiset.h>
-
-std::vector<std::filesystem::path> file_walker(const std::wstring &dir,
-                                               const std::wstring &extension = L".xml") {
-    std::vector<std::filesystem::path> result;
-    using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
-    for (const auto &dirEntry : recursive_directory_iterator(dir))
-        if (std::filesystem::is_regular_file(dirEntry.path())) {
-            if (dirEntry.path().filename().extension() == extension) {
-                result.push_back(dirEntry.path());
-                PLOGD << "source file found: " << dirEntry.path().filename();
-            }
-        }
-    return result;
-}
 
 std::wstring init_search_list() {
     std::wstring result;
-    const wchar_t *keywords[]{L"label",L"labelPlural",L"labelMale",L"labelMalePlural",L"labelFemale",L"labelFemalePlural",L"description",L"title",L"titleShort",L"baseDescription",L"verb",L"gerund",L"reportString"};
+    const wchar_t *keywords[]{L"label",           L"labelPlural", L"labelMale",
+                              L"labelMalePlural", L"labelFemale", L"labelFemalePlural",
+                              L"description",     L"title",       L"titleShort",
+                              L"baseDescription", L"verb",        L"gerund",
+                              L"reportString"};
     for (auto *keyword : keywords) {
         result += fmt::format(L"//{} |", keyword);
     }
@@ -48,7 +40,7 @@ std::wstring init_search_list() {
 }
 
 int main(int argc, char **argv) {
-    const std::locale utf8( std::locale(), new std::codecvt_utf8<wchar_t> );
+    const std::locale utf8(std::locale(), new std::codecvt_utf8<wchar_t>);
     std::wcout.imbue(utf8);
     static plog::ConsoleAppender<plog::TxtFormatter> consoleAppender;
 #ifndef NDEBUG
@@ -77,8 +69,9 @@ int main(int argc, char **argv) {
     default: std::cerr << "Too many arguments!"; exit(-1);
     }
 
-    if (!outputDir_from_user.ends_with(L'\\')) outputDir_from_user+=L'\\';
-    language_dir_prefix=outputDir_from_user+language_dir_prefix;
+    if (!outputDir_from_user.ends_with(L'\\'))
+        outputDir_from_user += L'\\';
+    language_dir_prefix = outputDir_from_user + language_dir_prefix;
 
     std::set<std::wstring> keys;
 
@@ -92,7 +85,7 @@ int main(int argc, char **argv) {
 
         if (!match_nodeset.empty()) {
             for (auto *current_node : match_nodeset) {
-                PLOGD<< reinterpret_cast<const char*>( xmlGetNodePath(current_node));
+                PLOGD << reinterpret_cast<const char *>(xmlGetNodePath(current_node));
                 auto nodeText = getText(doc.get(), current_node->xmlChildrenNode);
                 PLOGD << "nodeText: " << nodeText;
                 auto xpath = getXPath(current_node);

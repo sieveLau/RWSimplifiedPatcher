@@ -16,20 +16,6 @@
 #include <regex>
 #include <string>
 
-std::vector<std::filesystem::path> file_walker(const std::wstring &dir,
-                                               const std::wstring &extension = L".xml") {
-    std::vector<std::filesystem::path> result;
-    using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
-    for (const auto &dirEntry : recursive_directory_iterator(dir))
-        if (std::filesystem::is_regular_file(dirEntry.path())) {
-            if (dirEntry.path().filename().extension() == extension) {
-                result.push_back(dirEntry.path());
-                PLOGD << "source file found: " << dirEntry.path().filename();
-            }
-        }
-    return result;
-}
-
 int main(int argc, char **argv) {
     const std::locale utf8(std::locale(), new std::codecvt_utf8<wchar_t>);
     std::wcout.imbue(utf8);

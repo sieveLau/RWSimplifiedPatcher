@@ -12,12 +12,16 @@
 #include <algorithm>
 #include <codecvt>
 #include <exception>
+#include <filesystem>
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 #include <locale>
 #include <memory>
 #include <plog/Log.h>
 #include <regex>
+
+std::vector<std::filesystem::path> file_walker(const std::wstring &dir,
+                                               const std::wstring &extension = L".xml");
 
 std::wstring xmlCharToWideString(const xmlChar *xmlString);
 
