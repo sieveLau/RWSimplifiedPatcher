@@ -108,20 +108,20 @@ bool getliNumber(const std::wstring &xpath_containing_li, long *result) {
 std::wstring getOutputDirectory(const std::wstring &xpath) {
     std::wstring prefix(L"/Defs/");
     const auto prefix_length = prefix.size();
-    // ÒªÊä³öµÄÎÄ¼şËùÔÚµÄÄ¿Â¼Ãû£¬ÊÇ¸ù¾İxpathÀïµÄ"/Defs/"ºóÃæ±©Â¶³öÀ´µÄ"MyNameSpace.MyCustomDef"À´È·¶¨µÄ
-    // Ê×ÏÈ°Ñ"/Defs/"È¥µô
+    // è¦è¾“å‡ºçš„æ–‡ä»¶æ‰€åœ¨çš„ç›®å½•åï¼Œæ˜¯æ ¹æ®xpathé‡Œçš„"/Defs/"åé¢æš´éœ²å‡ºæ¥çš„"MyNameSpace.MyCustomDef"æ¥ç¡®å®šçš„
+    // é¦–å…ˆæŠŠ"/Defs/"å»æ‰
     auto directory = xpath.substr(xpath.find_first_of(prefix) + prefix_length);
     if (directory.empty()) {
         auto info = L"Invalid xpath: " + xpath;
         PLOG_FATAL << info;
         throw std::runtime_error("Invalid xpath");
     }
-    // È»ºó×¼±¸²ÃµôºóÃæµÄ²¿·Ö£¬µ«ÊÇ¿ÉÄÜ»áÓöµ½´ø[]µÄDef
-    // ÀıÈç/Defs/ResearchProjectDef[1]/label
+    // ç„¶åå‡†å¤‡è£æ‰åé¢çš„éƒ¨åˆ†ï¼Œä½†æ˜¯å¯èƒ½ä¼šé‡åˆ°å¸¦[]çš„Def
+    // ä¾‹å¦‚/Defs/ResearchProjectDef[1]/label
     const auto index_of_square = directory.find(L'[');
     const auto index_of_slash = directory.find(L'/');
-    // ĞèÒªÈ¡¶şÕß½ÏĞ¡µÄÊÇÒòÎªxpathÀïÃæ¿ÉÄÜ»áliÓĞ[0]¶øDef²¿·ÖÃ»ÓĞ£¬µ¼ÖÂ¶¨Î»´í
-    // ÀıÈç/Defs/AlienRace.ThingDef_AlienRace/tools/li[1]/label
+    // éœ€è¦å–äºŒè€…è¾ƒå°çš„æ˜¯å› ä¸ºxpathé‡Œé¢å¯èƒ½ä¼šliæœ‰[0]è€ŒDeféƒ¨åˆ†æ²¡æœ‰ï¼Œå¯¼è‡´å®šä½é”™
+    // ä¾‹å¦‚/Defs/AlienRace.ThingDef_AlienRace/tools/li[1]/label
     directory = index_of_square == std::wstring::npos
         ? directory.erase(index_of_slash)
         : directory.erase(index_of_slash<index_of_square?index_of_slash:index_of_square);

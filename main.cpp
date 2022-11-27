@@ -1,7 +1,7 @@
 //
 // Created by Sieve Lau on 2022/11/18.
 //
-#include "helper.hpp"
+#include "helper/helper.hpp"
 #include "shared.hpp"
 #include <cstddef>
 #include <filesystem>
@@ -97,13 +97,13 @@ int main(int argc, char **argv) {
                 PLOGD << "nodeText: " << nodeText;
                 auto xpath = getXPath(current_node);
                 PLOGD << "xmlGetNodePath: " << xpath;
-                // ÒªÊä³öµÄÎÄ¼şËùÔÚµÄÄ¿Â¼Ãû£¬ÊÇ¸ù¾İxpathÀïµÄ"/Defs/"ºóÃæ±©Â¶³öÀ´µÄ"MyNameSpace.MyCustomDef"À´È·¶¨µÄ
+                // è¦è¾“å‡ºçš„æ–‡ä»¶æ‰€åœ¨çš„ç›®å½•åï¼Œæ˜¯æ ¹æ®xpathé‡Œçš„"/Defs/"åé¢æš´éœ²å‡ºæ¥çš„"MyNameSpace.MyCustomDef"æ¥ç¡®å®šçš„
                 auto directory = getOutputDirectory(xpath);
                 target_output_dir = language_dir_prefix + directory + L'/';
                 target_output_file = target_output_dir + s2ws(file.filename().string());
 
                 auto defName = getDefNameFromXPath(doc.get(), xpath);
-                // ¸ù¾İxpath×îÄ©Î²µÄÒ»²¿·ÖÀ´È·¶¨ÊÇÊ²Ã´tag
+                // æ ¹æ®xpathæœ€æœ«å°¾çš„ä¸€éƒ¨åˆ†æ¥ç¡®å®šæ˜¯ä»€ä¹ˆtag
                 auto what_type = xpath.substr(xpath.rfind('/') + 1);
 
                 if (!defName.empty()) {
@@ -111,15 +111,15 @@ int main(int argc, char **argv) {
                         && (what_type != L"reportString"))
                         keys.insert(nodeText);
                     if (!(str_contains(xpath, L"li[") || str_contains(xpath, L"li/"))) {
-                        // Èç¹ûÖ»ÊÇÒ»¸öÆÕÍ¨µÄlabel
+                        // å¦‚æœåªæ˜¯ä¸€ä¸ªæ™®é€šçš„label
                         output_map[target_output_file].emplace_back(
                             fmt::format(L"<{0}.{1}>{2}</{0}.{1}>\n", defName, what_type, nodeText));
                     } else {
-                        // ÕâÀï´¦ÀíµÄ¾ÍÊÇ×÷ÎªÄ³¸öliÔªËØÀïÃæµÄlabelÁË
-                        // Àı×ÓÊÇ/Defs/AlienRace.ThingDef_AlienRace/tools/li[1]/label
+                        // è¿™é‡Œå¤„ç†çš„å°±æ˜¯ä½œä¸ºæŸä¸ªliå…ƒç´ é‡Œé¢çš„labeläº†
+                        // ä¾‹å­æ˜¯/Defs/AlienRace.ThingDef_AlienRace/tools/li[1]/label
                         auto name = getliParentTagName(xpath);
                         long int li_number;
-                        // ÓĞµÄliÓĞĞòºÅ£¬ÓĞµÄÃ»ÓĞ
+                        // æœ‰çš„liæœ‰åºå·ï¼Œæœ‰çš„æ²¡æœ‰
                         if (getliNumber(xpath, &li_number)) {
                             auto final_tag_name =
                                 // clang-format off
