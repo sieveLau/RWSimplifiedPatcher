@@ -150,9 +150,6 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <CopyFileToFolders Include="defclasses.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="shared.hpp" />
   </ItemGroup>
   <ItemGroup>

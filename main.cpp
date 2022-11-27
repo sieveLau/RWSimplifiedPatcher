@@ -61,22 +61,24 @@ int main(int argc, char **argv) {
 
     auto language_dir_prefix = getDirectoryPrefix();
     std::wstring input;
+    std::wstring outputDir_from_user;
     switch (argc) {
     case 1:
     case 2:
         std::wcout << "outputDir: ";
-        std::getline(std::wcin, input);
-        language_dir_prefix = input + language_dir_prefix;
+        std::getline(std::wcin, outputDir_from_user);
         std::wcout << "DefsDir: ";
-        input.clear();
         std::getline(std::wcin, input);
         break;
     case 3:
         input = s2ws(std::string(argv[2]));
-        language_dir_prefix = s2ws(std::string(argv[1])) + language_dir_prefix;
+        outputDir_from_user = s2ws(std::string(argv[1]));
         break;
     default: std::cerr << "Too many arguments!"; exit(-1);
     }
+
+    if (!outputDir_from_user.ends_with(L'\\')) outputDir_from_user+=L'\\';
+    language_dir_prefix=outputDir_from_user+language_dir_prefix;
 
     std::set<std::wstring> keys;
 
