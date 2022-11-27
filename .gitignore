@@ -442,4 +442,4 @@ FodyWeavers.xsd
 
 # End of https://www.toptal.com/developers/gitignore/api/c++
 
-cmake-build-debug/
+cmake-build-*/

@@ -1,35 +1,27 @@
 #include "helper.hpp"
-#include <regex>
-#include <locale>
 
-std::wstring xmlCharToWideString(const xmlChar *xmlString)
-{    
-    if (!xmlString) { 
-        PLOGF<<"provided string was null";
-        abort(); 
-    } //provided string was null
-    try
-    {
+std::wstring xmlCharToWideString(const xmlChar *xmlString) {
+    if (!xmlString) {
+        PLOGF << "provided string was null";
+        abort();
+    }//provided string was null
+    try {
         std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> conv;
-        return conv.from_bytes((const char*)xmlString);
-    }
-    catch(const std::range_error& e)
-    {
-        PLOGF<<e.what();
-        abort(); //wstring_convert failed
+        return conv.from_bytes((const char *) xmlString);
+    } catch (const std::range_error &e) {
+        PLOGF << e.what();
+        abort();//wstring_convert failed
     }
 }
 
-std::wstring s2ws(const std::string& str)
-{
+std::wstring s2ws(const std::string &str) {
     using convert_typeX = std::codecvt_utf8<wchar_t>;
     std::wstring_convert<convert_typeX, wchar_t> converterX;
 
     return converterX.from_bytes(str);
 }
 
-std::string ws2s(const std::wstring& wstr)
-{
+std::string ws2s(const std::wstring &wstr) {
     using convert_typeX = std::codecvt_utf8<wchar_t>;
     std::wstring_convert<convert_typeX, wchar_t> converterX;
 
@@ -44,7 +36,7 @@ std::wstring getXPath(xmlNodePtr node) {
 }
 std::wstring getText(xmlDocPtr doc, xmlNodePtr node) {
     auto internal_str = xmlNodeGetContent(node);
-    std::wstring rval=xmlCharToWideString(internal_str);
+    std::wstring rval = xmlCharToWideString(internal_str);
     xmlFree(internal_str);
     return rval;
 }
@@ -53,7 +45,7 @@ std::unique_ptr<xmlXPathObject, void (*)(xmlXPathObjectPtr)> getByXPath(xmlDocPt
     xmlXPathContextPtr context;
     context = xmlXPathNewContext(doc);
 
-    return {xmlXPathEvalExpression(BAD_CAST (ws2s(xpath)).c_str(), context), &xmlXPathFreeObject};
+    return {xmlXPathEvalExpression(BAD_CAST(ws2s(xpath)).c_str(), context), &xmlXPathFreeObject};
 }
 std::vector<xmlNodePtr> getNodeSet(const xmlXPathObject *xpath_result) {
     auto nodeset_origin = xpath_result->nodesetval;
@@ -63,7 +55,7 @@ std::vector<xmlNodePtr> getNodeSet(const xmlXPathObject *xpath_result) {
     auto nodeNumbers = nodeset_origin->nodeNr;
     std::vector<xmlNodePtr> result;
     result.reserve(nodeNumbers);
-for (int i = 0; i < nodeNumbers; ++i) {
+    for (int i = 0; i < nodeNumbers; ++i) {
         result.emplace_back(nodeTab[i]);
     }
     return result;
@@ -124,7 +116,7 @@ std::wstring getOutputDirectory(const std::wstring &xpath) {
     // 例如/Defs/AlienRace.ThingDef_AlienRace/tools/li[1]/label
     directory = index_of_square == std::wstring::npos
         ? directory.erase(index_of_slash)
-        : directory.erase(index_of_slash<index_of_square?index_of_slash:index_of_square);
+        : directory.erase(index_of_slash < index_of_square ? index_of_slash : index_of_square);
     PLOGD << "directory: " << directory;
     return directory;
 }
