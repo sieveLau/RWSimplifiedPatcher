@@ -16,19 +16,30 @@ if (WIN32)
     include_directories(${LIBXML2_INCLUDE_DIR} ${vcpkg_INCLUDE_DIR})
 ELSE ()
     include(FetchContent)
-    FetchContent_Declare(libxml2
-            URL
-            https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.10.3/libxml2-v2.10.3.tar.gz
-            )
-    FetchContent_MakeAvailable(libxml2)
-    include_directories(${libxml2_SOURCE_DIR}/include)
+    find_package(LibXml2 REQUIRED)
+    find_package(fmt CONFIG REQUIRED)
 
+    if (LibXml2_FOUND)
+        include_directories(${LIBXML2_INCLUDE_DIR})
+    ELSE ()
+        FetchContent_Declare(libxml2
+                URL
+                https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.10.3/libxml2-v2.10.3.tar.gz
+                )
+        FetchContent_MakeAvailable(libxml2)
+        include_directories(${libxml2_SOURCE_DIR}/include)
+    ENDIF ()
+
+    if (fmt_FOUND)
+        include_directories(${fmt_INCLUDE_DIR})
+    ELSE()
     FetchContent_Declare(fmt
             GIT_REPOSITORY https://github.com/fmtlib/fmt.git
             GIT_TAG 9.1.0
             )
     FetchContent_MakeAvailable(fmt)
     include_directories(${fmt_SOURCE_DIR}/include)
+    ENDIF()
 
     FetchContent_Declare(plog
             GIT_REPOSITORY https://github.com/SergiusTheBest/plog.git

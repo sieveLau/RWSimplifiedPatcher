@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <codecvt>
+#include <cwchar>
 #include <exception>
 #include <filesystem>
 #include <libxml/parser.h>
