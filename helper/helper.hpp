@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <codecvt>
+#include <cwchar>
 #include <exception>
 #include <filesystem>
 #include <libxml/parser.h>
@@ -51,3 +52,7 @@ std::wstring getOutputDirectory(const std::wstring &xpath);
 template<typename T> bool str_contains(const std::wstring &str, const T &what_to_find) {
     return (str.find(what_to_find) != std::wstring::npos);
 }
+
+struct empty_node_text : public std::runtime_error {
+    empty_node_text() : runtime_error("Empty Node Text.") {}
+};
