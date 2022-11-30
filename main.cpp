@@ -26,11 +26,28 @@
 
 std::wstring init_search_list() {
     std::wstring result;
-    const wchar_t *keywords[]{L"label",           L"labelPlural", L"labelMale",
-                              L"labelMalePlural", L"labelFemale", L"labelFemalePlural",
-                              L"description",     L"title",       L"titleShort",
-                              L"baseDescription", L"verb",        L"gerund",
-                              L"reportString"};
+    const wchar_t *keywords[]{L"label",
+                              L"labelShort",
+                              L"labelPlural",
+                              L"labelMale",
+                              L"labelMalePlural",
+                              L"labelFemale",
+                              L"labelFemalePlural",
+                              L"description",
+                              L"deathMessage",
+                              L"title",
+                              L"helpText",
+                              L"titleShort",
+                              L"baseDescription",
+                              L"verb",
+                              L"gerund",
+                              L"reportString",
+                              L"jobString",
+                              L"beginLetter",
+                              L"beginLetterLabel",
+                              L"recoveryMessage",
+                              L"baseInspectLine",
+                              L"formatString"};
     for (auto *keyword : keywords) {
         result += fmt::format(L"//{} |", keyword);
     }
@@ -85,8 +102,7 @@ int main(int argc, char **argv) {
         if (!match_nodeset.empty()) {
             for (auto *current_node : match_nodeset) {
                 PLOGD << reinterpret_cast<const char *>(xmlGetNodePath(current_node));
-                auto nodeText = getText(doc.get(), current_node->xmlChildrenNode);
-                PLOGD << "nodeText: " << nodeText;
+
                 auto xpath = getXPath(current_node);
                 PLOGD << "xmlGetNodePath: " << xpath;
                 // 要输出的文件所在的目录名，是根据xpath里的"/Defs/"后面暴露出来的"MyNameSpace.MyCustomDef"来确定的
@@ -97,6 +113,12 @@ int main(int argc, char **argv) {
                 auto defName = getDefNameFromXPath(doc.get(), xpath);
                 // 根据xpath最末尾的一部分来确定是什么tag
                 auto what_type = xpath.substr(xpath.rfind('/') + 1);
+
+                std::wstring nodeText;
+                try {
+                    nodeText = getText(doc.get(), current_node->xmlChildrenNode);
+                } catch (empty_node_text &e) { nodeText = L"origin_empty//" + defName; }
+                PLOGD << "nodeText: " << nodeText;
 
                 if (!defName.empty()) {
                     if ((what_type != L"description") && (what_type != L"baseDescription")
@@ -118,7 +140,7 @@ int main(int argc, char **argv) {
                                 fmt::format(L"<{defName}.{liName}.{liNumber}.{type}>{text}</{defName}.{liName}.{liNumber}.{type}>\n",
                                             fmt::arg(L"defName",defName),
                                             fmt::arg(L"liName", name),
-                                            fmt::arg(L"liNumber", li_number),
+                                            fmt::arg(L"liNumber", li_number - 1),
                                             fmt::arg(L"type", what_type),
                                             fmt::arg(L"text", nodeText)
                                             );

@@ -16,7 +16,7 @@ std::string ws2s(const std::wstring &wstr) {
 std::wstring xmlCharToWideString(const xmlChar *xmlString) {
     if (!xmlString) {
         PLOGF << "provided string was null";
-        abort();
+        throw std::runtime_error("[helper.cpp xmlCharToWideString]Provided string was null!");
     }
     try {
         return s2ws((const char *) xmlString);
@@ -32,9 +32,16 @@ std::wstring getXPath(xmlNodePtr node) {
     xmlFree(internal_str);
     return rval;
 }
+
 std::wstring getText(xmlDocPtr doc, xmlNodePtr node) {
     auto internal_str = xmlNodeGetContent(node);
-    std::wstring rval = xmlCharToWideString(internal_str);
+    std::wstring rval;
+    try {
+        rval = xmlCharToWideString(internal_str);
+    } catch (std::exception &e) {
+        PLOGD << e.what();
+        throw empty_node_text();
+    }
     xmlFree(internal_str);
     return rval;
 }
