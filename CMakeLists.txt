@@ -50,7 +50,7 @@ ELSE ()
 ENDIF ()
 add_subdirectory(helper)
 
-add_executable(${PROJECT_NAME} main.cpp shared.hpp)
+add_executable(${PROJECT_NAME} main.cpp shared.hpp Node.cpp Node.h)
 target_link_libraries(${PROJECT_NAME} plog::plog LibXml2::LibXml2 fmt::fmt helper)
 
 add_subdirectory(replace)
