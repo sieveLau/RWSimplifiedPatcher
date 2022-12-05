@@ -5,7 +5,6 @@
 #include "../shared.hpp"
 #include <filesystem>
 #include <fmt/format.h>
-#include <fmt/xchar.h>
 #include <fstream>
 #include <iostream>
 #include <regex>
@@ -16,7 +15,6 @@
 // TODO: QT的GUI
 
 int main() {
-    using wstring = std::wstring;
     using path = std::filesystem::path;
 
     std::string dir_to_scan_str;
@@ -25,8 +23,8 @@ int main() {
     std::getline(std::cin, dir_to_scan_str);
     auto src_files = file_walker(dir_to_scan_str);
 
-    constexpr const char *regex_patter_format_string = R"([ >]({})[ <](?![^<]*>))";
-    constexpr const char *regex_replace_pattern_format_string = R"(({})(?![^<]*>))";
+    constexpr const char *regex_patter_format_string = R"([ >]{}[ <](?!<*>))";
+    constexpr const char *regex_replace_pattern_format_string = R"(({})(?!<*>))";
 
     std::regex left_brackets(R"(\()");
     std::regex right_brackets(R"(\))");
@@ -47,31 +45,25 @@ int main() {
         std::regex replace_pattern(fmt::format(regex_replace_pattern_format_string, keyword));
 
         std::cout << "Replace with:";
-        wstring wreplacement;
         std::string replacement;
-        std::wcin.imbue(get_locale());
         do {
-            std::getline(std::wcin, wreplacement);
-            replacement = ws2s(wreplacement);
+            std::getline(std::cin, replacement);
         } while (replacement.empty() || replacement.starts_with('\n'));
 
         for (auto &&file : src_files) {
-            std::wifstream input_file(
-                R"(D:\source\RWSimplifiedPatcher\cmake-build-debug\Languages\ChineseSimplified\DefInjected\CombatExtended.AmmoCategoryDef\AmmoCategories_Neolithic.xml)");
+            std::ifstream input_file(file);
             if (input_file.is_open()) {
-                wstring line;
-                wstring output_buffer;
+                std::string line;
+                std::string output_buffer;
                 while (std::getline(input_file, line)) {
-                    auto normal_line = ws2s(line);
-                    if (std::regex_search(normal_line, pattern)) {
-                        normal_line = std::regex_replace(normal_line, replace_pattern, replacement);
+                    if (std::regex_search(line, pattern)) {
+                        line = std::regex_replace(line.c_str(), replace_pattern, replacement);
                     }
-                    output_buffer += s2ws(normal_line);
-                    output_buffer += L'\n';
+                    output_buffer += line;
+                    output_buffer += '\n';
                 }
                 input_file.close();
-                std::wofstream output(file);
-                output.imbue(get_locale());
+                std::ofstream output(file);
                 if (output.is_open()) {
                     output << output_buffer;
                     output.close();
