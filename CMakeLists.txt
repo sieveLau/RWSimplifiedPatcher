@@ -8,6 +8,8 @@ if (APPLE)
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -gdwarf-3")
 endif ()
 
+#find_package(re2 CONFIG REQUIRED)
+
 if (WIN32)
     find_package(LibXml2 REQUIRED)
     find_package(fmt CONFIG REQUIRED)
@@ -18,6 +20,7 @@ ELSE ()
     include(FetchContent)
     find_package(LibXml2 REQUIRED)
     find_package(fmt CONFIG REQUIRED)
+
 
     if (LibXml2_FOUND)
         include_directories(${LIBXML2_INCLUDE_DIR})
@@ -32,14 +35,14 @@ ELSE ()
 
     if (fmt_FOUND)
         include_directories(${fmt_INCLUDE_DIR})
-    ELSE()
-    FetchContent_Declare(fmt
-            GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-            GIT_TAG 9.1.0
-            )
-    FetchContent_MakeAvailable(fmt)
-    include_directories(${fmt_SOURCE_DIR}/include)
-    ENDIF()
+    ELSE ()
+        FetchContent_Declare(fmt
+                GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+                GIT_TAG 9.1.0
+                )
+        FetchContent_MakeAvailable(fmt)
+        include_directories(${fmt_SOURCE_DIR}/include)
+    ENDIF ()
 
     FetchContent_Declare(plog
             GIT_REPOSITORY https://github.com/SergiusTheBest/plog.git
@@ -50,7 +53,11 @@ ELSE ()
 ENDIF ()
 add_subdirectory(helper)
 
-add_executable(${PROJECT_NAME} main.cpp shared.hpp Node.cpp Node.h)
-target_link_libraries(${PROJECT_NAME} plog::plog LibXml2::LibXml2 fmt::fmt helper)
+add_library(shared shared.hpp shared.cpp)
+target_link_libraries(shared fmt::fmt)
+
+add_executable(${PROJECT_NAME} main.cpp Node.cpp Node.h)
+
+target_link_libraries(${PROJECT_NAME} plog::plog LibXml2::LibXml2 fmt::fmt helper shared)
 
 add_subdirectory(replace)

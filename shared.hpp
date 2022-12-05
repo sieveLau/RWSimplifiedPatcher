@@ -1,6 +1,6 @@
 #pragma once
+#include <fmt/format.h>
 #include <string>
-std::wstring getDirectoryPrefix() {
-    const static std::wstring prefix(L"Languages/ChineseSimplified/DefInjected/");
-    return prefix;
-}
+std::string getDirectoryPrefix();
+
+const std::string &xml_header();
