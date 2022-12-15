@@ -1,7 +1,6 @@
 ## 编译要求
 
-cpp分支是sln格式。cmake分支当前正在Windows上的优化，Mac和Linux平台暂时还没有测试，应该会缺少一些header。在Windows上建议使用[vcpkg](https://github.com/microsoft/vcpkg)
-安装依赖。只测试了64位系统（x64-windows和arm64）。
+在Windows上建议使用[vcpkg](https://github.com/microsoft/vcpkg)安装依赖。只测试了64位系统（x64-windows和arm64）。
 
 - C++20
 - plog
@@ -13,15 +12,7 @@ cpp分支是sln格式。cmake分支当前正在Windows上的优化，Mac和Linux
 
 ## 用法
 
-运行`RWSimplifiedPatcher.exe`
-，根据提示提供输出目录和Mod的Defs文件夹路径。或者也可以直接命令行传递`RWSimplifiedPatcher.exe 输出目录 Mod的Defs文件夹`
-。本程序会自动扫描所有Defs文件夹内的xml并生成翻译用的Languages文件夹，以及一个用于快捷翻译的pairs.txt。然后：
-
-1. 借助便捷翻译：
-    1. 对pairs.txt进行翻译，把翻译的词直接添加到每一行的冒号右边
-    2. 运行`replace.exe`，提供pairs.txt的路径及DefInjected的路径，replace.exe将会进行简单替换翻译（TODO：待补充）
-    3. 翻译DefInjected下的xml的剩余的英文
-2. 直接硬翻，翻译DefInjected下的xml的英文
+下载最新的[Release](https://github.com/sieveLau/RWSimplifiedPatcher/releases/latest)并解压，运行`RWSimplifiedPatcher.exe`，根据提示提供输出目录和Mod的Defs文件夹路径。或者也可以直接命令行传递`RWSimplifiedPatcher.exe 输出目录 Mod的Defs文件夹`。本程序会自动扫描所有Defs文件夹内的xml并生成翻译用的Languages文件夹，翻译里面的每个xml文件即可。
 
 翻译完Languages文件夹之后，可以：
 
