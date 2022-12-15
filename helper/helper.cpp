@@ -92,12 +92,18 @@ std::wstring get_li_parent_tag_name(const std::wstring &xpath_containing_li) {
     throw std::runtime_error("Invalid xpath: no li found");
 }
 
+/**
+ * 从xpath中提取li后面的数字
+ * @brief 从xpath中提取li后面的数字
+ * @param xpath_containing_li 含有形似li[1]的xpath
+ * @param result 用于存储结果的指针
+ * @return li后面的数字，注意需要-1才是能够作为dot notation的tag名字的
+*/
 bool get_li_number(const std::wstring &xpath_containing_li, long *result) {
     std::wregex li_number_pattern(LR"(/\w*/li\[(\d*)\]/)");
     std::wsmatch li_match;
     if (std::regex_search(xpath_containing_li, li_match, li_number_pattern)) {
         *result = std::wcstol(li_match[1].str().c_str(), nullptr, 10);
-        //        *result = _wtol(li_match[1].str().c_str()) - 1;
         return true;
     }
     return false;
