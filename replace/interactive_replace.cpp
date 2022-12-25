@@ -24,7 +24,7 @@ int main() {
     auto src_files = file_walker(dir_to_scan_str);
 
     constexpr const char *regex_patter_format_string = R"([ >]{}[ <](?!<*>))";
-    constexpr const char *regex_replace_pattern_format_string = R"(({})(?!<*>))";
+    constexpr const char *regex_replace_pattern_format_string = R"(({})(?![^<]*>))";
 
     std::regex left_brackets(R"(\()");
     std::regex right_brackets(R"(\))");
