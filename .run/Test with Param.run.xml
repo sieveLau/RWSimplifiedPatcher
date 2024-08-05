@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Test with Param" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="./example/1127530465 ./example/Test_112" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="RWSimplifiedPatcher" TARGET_NAME="RWSimplifiedPatcher" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="RWSimplifiedPatcher" RUN_TARGET_NAME="RWSimplifiedPatcher">
+    <method v="2">
+      <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+    </method>
+  </configuration>
+</component>

@@ -26,6 +26,13 @@ file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/interested_tags.txt
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/list_tags.txt
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/version
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/example
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+)
+
 add_library(definfo DefInfo.cpp DefInfo.h)
 target_link_libraries(definfo fmt::fmt)
 

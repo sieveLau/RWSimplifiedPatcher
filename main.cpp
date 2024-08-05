@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <fstream>
+#include <regex>
 
 std::set<std::string> get_interested_tags_from_file(const std::filesystem::path &file) {
     std::set<std::string> result;
@@ -48,11 +49,50 @@ void entry(const std::filesystem::path& input_dir, const std::filesystem::path& 
 }
 
 int main(int argc, char** argv) {
-    auto exec_parent = std::filesystem::path(argv[0]).parent_path();
-    entry("/home/sieve/git/RWSimplifiedPatcher/example/1127530465",
-          "/home/sieve/git/RWSimplifiedPatcher/example/Test_112",
+    using std::filesystem::path;
+    using std::filesystem::exists;
+    using std::string;
+    using std::regex;
+    using std::regex_match;
+
+    if (argc < 3) {
+        printf("Usage: RWSimplifiedPatcher <input_dir> <output_dir>");
+        exit(1);
+    }
+
+    path input_dir(argv[1]);
+    if (!exists(input_dir)) {
+        printf("[FATAL]Input dir %s not found.", std::filesystem::absolute(input_dir).c_str());
+        exit(2);
+    }
+
+    const static char* FMT_STR_INVALID_CONFIG_VERSION_NUM = "[WARN]Invalid version in %s, ignored. Using %s as version.";
+    const static char* FMT_STR_NO_VERSION_FILE = "[WARN]Version config file %s not found, using %s as version.";
+    const static char* FMT_STR_SUCCESS_VERSION_READ = "[INFO]Version config file %s valid, using %s as version.";
+
+    const auto exec_parent = std::filesystem::path(argv[0]).parent_path();
+    auto version_file = exec_parent/"version";
+    const static char* k_hardcoded_version = "1.5";
+    string version(k_hardcoded_version);
+    regex version_pattern(R"(^\d\.\d$)");
+
+    if (exists(version_file)) {
+        std::ifstream version_f(version_file);
+        std::getline(version_f, version);
+        if(!regex_match(version, version_pattern)){
+            version = k_hardcoded_version;
+            printf(FMT_STR_INVALID_CONFIG_VERSION_NUM, version_file.c_str(), k_hardcoded_version);
+        } else {
+            printf(FMT_STR_SUCCESS_VERSION_READ, version_file.c_str(), version.c_str());
+        }
+    } else {
+        printf(FMT_STR_NO_VERSION_FILE, version_file.c_str(), k_hardcoded_version);
+    }
+
+    entry(input_dir,
+          argv[2],
           exec_parent,
-          "1.5"
+          version
           );
 
     return 0;
