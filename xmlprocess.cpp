@@ -167,3 +167,101 @@ void format_defs_to_file(const std::filesystem::path& translation_mod_root_path,
         doc->Print(&printer);
     }
 }
+
+void copy_included_trans(const std::filesystem::path& translation_mod_root_path, const std::filesystem::path& original_mod_root_path, const std::string& lang){
+    using std::filesystem::path;
+    using std::filesystem::exists;
+    using std::filesystem::recursive_directory_iterator;
+    using std::filesystem::absolute;
+    using std::filesystem::create_directories;
+    using std::filesystem::copy;
+    using tinyxml2::XMLDocument;
+    auto lang_dir = path("Languages")/lang;
+    for (auto& dir_entry : recursive_directory_iterator(original_mod_root_path)){
+        if (dir_entry.is_regular_file() && dir_entry.path().extension() == ".xml"){
+            auto full_path_str = absolute(dir_entry.path()).string();
+            auto index_of_Lang = full_path_str.find(lang_dir);
+            if (index_of_Lang != std::string::npos) {
+                auto output_file = translation_mod_root_path/full_path_str.substr(index_of_Lang);
+                if (exists(output_file))
+                    output_file+=".fromorigin";
+                else
+                    create_directories(output_file.parent_path());
+                copy(full_path_str, output_file, std::filesystem::copy_options::overwrite_existing);
+            }
+        }
+    }
+    // if the original mod has translated Keyed, the previous step has copied
+    // we just copy the english one to serve as reference
+    auto english_keyed = original_mod_root_path/"Languages"/"English"/"Keyed";
+    auto lang_keyed = translation_mod_root_path/"Languages"/lang/"Keyed";
+    if (exists(english_keyed)) {
+        if (!exists(lang_keyed)) {
+            create_directories(lang_keyed);
+        }
+        for (auto& dir_entry : recursive_directory_iterator(english_keyed)) {
+            if (dir_entry.is_regular_file() && dir_entry.path().extension() == ".xml"){
+                auto output_file = lang_keyed/dir_entry.path().filename();
+                output_file+=".english";
+                copy(absolute(dir_entry.path()), output_file,std::filesystem::copy_options::overwrite_existing);
+            }
+        }
+    }
+}
+
+void create_and_insert(tinyxml2::XMLDocument& doc, const char* tag_name, const char* tag_text){
+    auto* doc_root = doc.RootElement();
+    auto* new_node = doc.NewElement(tag_name);
+    new_node->SetText(tag_text);
+    doc_root->InsertEndChild(new_node);
+}
+
+void auto_about(const std::filesystem::path& translation_mod_root_path, const std::filesystem::path& original_mod_root_path, const std::string& version){
+    using std::filesystem::path;
+    using std::filesystem::exists;
+    using std::filesystem::absolute;
+    using std::filesystem::create_directories;
+    using tinyxml2::XMLDocument;
+    using tinyxml2::XMLElement;
+
+    auto origin_about = original_mod_root_path/"About"/"About.xml";
+    XMLDocument in_doc;
+    in_doc.LoadFile(origin_about.c_str());
+    auto * in_root = in_doc.RootElement();
+
+    auto output_about = translation_mod_root_path/"About"/"About.xml";
+    if (!exists(output_about.parent_path())) {
+        create_directories(output_about.parent_path());
+    }
+    XMLDocument out_doc;
+    auto* out_root = out_doc.NewElement("ModMetaData");
+    out_doc.InsertFirstChild(out_root);
+
+    // name
+    auto in_text = in_root->FirstChildElement("name")->GetText();
+    create_and_insert(out_doc, "name", fmt::format("{} 简体汉化", in_text).c_str());
+
+    // author
+    create_and_insert(out_doc, "author", "anonymous");
+
+    // supportedVersions
+    auto *out_node = out_doc.NewElement("supportedVersions");
+    out_root->InsertEndChild(out_node);
+    out_node = out_doc.NewElement("li");
+    out_node->SetText(version.c_str());
+    out_root->FirstChildElement("supportedVersions")->InsertEndChild(out_node);
+
+    // packageId
+    in_text = in_root->FirstChildElement("packageId")->GetText();
+    create_and_insert(out_doc, "packageId", fmt::format("zh.{}", in_text).c_str());
+
+    // loadAfter
+    create_and_insert(out_doc, "loadAfter","");
+    out_node = out_root->FirstChildElement("loadAfter")->InsertNewChildElement("li");
+    out_node->SetText(in_text);
+
+    std::unique_ptr<FILE, decltype(&fclose)> fd(fopen(output_about.c_str(),"wb"),&fclose);
+    tinyxml2::XMLPrinter printer(fd.get());
+    printer.PushHeader(true, true);
+    out_doc.Print(&printer);
+}

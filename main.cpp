@@ -34,6 +34,12 @@ void entry(const std::filesystem::path& input_dir, const std::filesystem::path& 
     if (!exists(input_dir)) {
         throw filesystem_error("No such file or directory", input_dir, std::error_code());
     }
+    if (equivalent(input_dir, output_dir)){
+        throw std::invalid_argument("I/O path is the same");
+    }
+
+    auto_about(output_dir, input_dir, version);
+
     set<string> possible_def_subdir {fmt::format("v{}", version), fmt::format("{}", version)};
     set<path> possible_def_dir {absolute(input_dir/"Defs")};
     for (const auto & subdir : possible_def_subdir) {
@@ -46,6 +52,7 @@ void entry(const std::filesystem::path& input_dir, const std::filesystem::path& 
         scan_def(dir, interested_tags, list_tags, def_map_by_class.get());
     }
     format_defs_to_file(output_dir, *def_map_by_class);
+    copy_included_trans(output_dir, input_dir);
 }
 
 int main(int argc, char** argv) {

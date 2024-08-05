@@ -32,3 +32,7 @@ class custom_printer : public tinyxml2::XMLPrinter {
 };
 
 void format_defs_to_file(const std::filesystem::path& translation_mod_root_path, const std::map<std::string, std::list<rimtrans::DefInfo>>& def_map_by_class, const std::string& lang = "ChineseSimplified");
+
+void copy_included_trans(const std::filesystem::path& translation_mod_root_path, const std::filesystem::path& original_mod_root_path, const std::string& lang = "ChineseSimplified");
+
+void auto_about(const std::filesystem::path& translation_mod_root_path, const std::filesystem::path& original_mod_root_path, const std::string& version);
