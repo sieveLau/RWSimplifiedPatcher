@@ -2,6 +2,8 @@ Debug
 Release
 out/
 x64
+example/
+cmake-build*/
 
 all_patch.xml
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudio
