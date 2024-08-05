@@ -17,3 +17,5 @@ auto scan_def(const std::string &src_path, const std::set<std::string> &interest
               const std::set<std::string> &list_tags,
               std::map<std::string, std::list<rimtrans::DefInfo>> *def_map_by_class = nullptr)
     -> std::map<std::string, std::list<rimtrans::DefInfo>> *;
+
+auto format_def_to_xml_element(const rimtrans::DefInfo& definfo, tinyxml2::XMLElement& root) ->tinyxml2::XMLElement&;

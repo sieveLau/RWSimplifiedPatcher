@@ -113,3 +113,11 @@ auto scan_def(const std::string &src_path, const std::set<std::string> &interest
     }
     return def_map_by_class;
 }
+
+auto format_def_to_xml_element(const rimtrans::DefInfo& definfo, tinyxml2::XMLElement& root) ->tinyxml2::XMLElement& {
+    for (const auto& field : definfo.get_fields()) {
+        auto * element = root.InsertNewChildElement(fmt::format("{}.{}", definfo.getDefName(), field.first).c_str());
+        element->SetText(field.second.c_str());
+    }
+    return root;
+}
