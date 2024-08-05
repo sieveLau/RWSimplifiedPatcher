@@ -5,9 +5,9 @@
 #include "DefInfo.h"
 
 const std::string &rimtrans::DefInfo::getDefName() const { return def_name_; }
-const std::string &rimtrans::DefInfo::getSrcFile() const { return src_file_; }
+const std::filesystem::path &rimtrans::DefInfo::getSrcFile() const { return src_file_; }
 void rimtrans::DefInfo::setDefName(const std::string &defName) { def_name_ = defName; }
-void rimtrans::DefInfo::setSrcFile(const std::string &srcFile) { src_file_ = srcFile; }
+void rimtrans::DefInfo::setSrcFile(const std::filesystem::path &srcFile) { src_file_ = srcFile; }
 void rimtrans::DefInfo::add_field(const std::string &key, std::string value) {
     this->fields_[key] = std::move(value);
 }

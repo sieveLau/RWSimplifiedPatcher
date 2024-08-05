@@ -5,11 +5,13 @@
 #include <ostream>
 #include <string>
 #include <utility>
+#include <filesystem>
+
 namespace rimtrans {
 class DefInfo {
     std::string def_class_;
     std::string def_name_;
-    std::string src_file_;
+    std::filesystem::path src_file_;
     std::map<std::string, std::string> fields_;
 
   public:
@@ -35,9 +37,9 @@ class DefInfo {
     }
     const std::string &getDefClass() const;
     const std::string &getDefName() const;
-    const std::string &getSrcFile() const;
+    const std::filesystem::path &getSrcFile() const;
     void setDefName(const std::string &defName);
-    void setSrcFile(const std::string &srcFile);
+    void setSrcFile(const std::filesystem::path &srcFile);
     const auto &get_fields() const { return fields_; }
     bool empty() const { return fields_.empty(); }
     void add_field(const std::string &key, std::string value);
