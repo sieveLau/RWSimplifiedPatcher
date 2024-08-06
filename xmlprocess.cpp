@@ -57,7 +57,8 @@ rimtrans::DefInfo a_def(const tinyxml2::XMLElement *node, const std::filesystem:
             continue;
         }
         if (interested_tags.contains(tag_name)) {
-            definfo.add_field(tag_name, current_node->GetText());
+            const char * text = current_node->GetText();
+            definfo.add_field(tag_name, text == nullptr? "" : text);
             continue;
         }
         if (list_tags.contains(tag_name)) {
@@ -183,10 +184,10 @@ void copy_included_trans(const std::filesystem::path& translation_mod_root_path,
             auto index_of_Lang = full_path_str.find(lang_dir);
             if (index_of_Lang != std::string::npos) {
                 auto output_file = translation_mod_root_path/full_path_str.substr(index_of_Lang);
-                if (exists(output_file))
-                    output_file+=".fromorigin";
-                else
-                    create_directories(output_file.parent_path());
+//                if (exists(output_file))
+                output_file+=".fromorigin";
+//                else
+                create_directories(output_file.parent_path());
                 copy(full_path_str, output_file, std::filesystem::copy_options::overwrite_existing);
             }
         }

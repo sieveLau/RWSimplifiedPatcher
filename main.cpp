@@ -34,7 +34,7 @@ void entry(const std::filesystem::path& input_dir, const std::filesystem::path& 
     if (!exists(input_dir)) {
         throw filesystem_error("No such file or directory", input_dir, std::error_code());
     }
-    if (equivalent(input_dir, output_dir)){
+    if (exists(output_dir) && equivalent(input_dir, output_dir)){
         throw std::invalid_argument("I/O path is the same");
     }
 
