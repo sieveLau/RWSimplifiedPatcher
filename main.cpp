@@ -49,7 +49,7 @@ void entry(const std::filesystem::path& input_dir, const std::filesystem::path& 
     for (const auto & dir : possible_def_dir) {
         if (!exists(dir))
             continue;
-        scan_def(dir, interested_tags, list_tags, def_map_by_class.get());
+        scan_def(dir.string(), interested_tags, list_tags, def_map_by_class.get());
     }
     format_defs_to_file(output_dir, *def_map_by_class);
     copy_included_trans(output_dir, input_dir);
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
 
     path input_dir(argv[1]);
     if (!exists(input_dir)) {
-        printf("[FATAL]Input dir %s not found.", std::filesystem::absolute(input_dir).c_str());
+        printf("[FATAL]Input dir %s not found.", std::filesystem::absolute(input_dir).string().c_str());
         exit(2);
     }
 
@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
     const static char* FMT_STR_SUCCESS_VERSION_READ = "[INFO]Version config file %s valid, using %s as version.";
 
     const auto exec_parent = std::filesystem::path(argv[0]).parent_path();
-    auto version_file = exec_parent/"version";
+    path version_file = exec_parent/"version";
     const static char* k_hardcoded_version = "1.5";
     string version(k_hardcoded_version);
     regex version_pattern(R"(^\d\.\d$)");
@@ -88,12 +88,12 @@ int main(int argc, char** argv) {
         std::getline(version_f, version);
         if(!regex_match(version, version_pattern)){
             version = k_hardcoded_version;
-            printf(FMT_STR_INVALID_CONFIG_VERSION_NUM, version_file.c_str(), k_hardcoded_version);
+            printf(FMT_STR_INVALID_CONFIG_VERSION_NUM, version_file.string().c_str(), k_hardcoded_version);
         } else {
-            printf(FMT_STR_SUCCESS_VERSION_READ, version_file.c_str(), version.c_str());
+            printf(FMT_STR_SUCCESS_VERSION_READ, version_file.string().c_str(), version.c_str());
         }
     } else {
-        printf(FMT_STR_NO_VERSION_FILE, version_file.c_str(), k_hardcoded_version);
+        printf(FMT_STR_NO_VERSION_FILE, version_file.string().c_str(), k_hardcoded_version);
     }
 
     entry(input_dir,

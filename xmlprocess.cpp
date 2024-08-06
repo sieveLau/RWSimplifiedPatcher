@@ -86,7 +86,7 @@ auto scan_def(const std::string &src_path, const std::set<std::string> &interest
             auto abs_path = absolute(entry);
             // load file 加载
             tinyxml2::XMLDocument doc;
-            doc.LoadFile(abs_path.c_str());
+            doc.LoadFile(abs_path.string().c_str());
             auto *root = doc.RootElement();
             // if no child, next file
             if (root->ChildElementCount() == 0)
@@ -161,7 +161,7 @@ void format_defs_to_file(const std::filesystem::path& translation_mod_root_path,
             create_directories(output_file_parent);
         }
         auto* doc = pair.second;
-        auto fp = unique_ptr<FILE,decltype(&fclose)>(fopen(output_file.c_str(), "wb"), &fclose);
+        auto fp = unique_ptr<FILE,decltype(&fclose)>(fopen(output_file.string().c_str(), "wb"), &fclose);
         custom_printer printer(fp.get());
         // Rimworld requires UTF-8 With BOM
         printer.PushHeader(true, true);
@@ -181,7 +181,7 @@ void copy_included_trans(const std::filesystem::path& translation_mod_root_path,
     for (auto& dir_entry : recursive_directory_iterator(original_mod_root_path)){
         if (dir_entry.is_regular_file() && dir_entry.path().extension() == ".xml"){
             auto full_path_str = absolute(dir_entry.path()).string();
-            auto index_of_Lang = full_path_str.find(lang_dir);
+            auto index_of_Lang = full_path_str.find(lang_dir.string());
             if (index_of_Lang != std::string::npos) {
                 auto output_file = translation_mod_root_path/full_path_str.substr(index_of_Lang);
 //                if (exists(output_file))
@@ -227,7 +227,7 @@ void auto_about(const std::filesystem::path& translation_mod_root_path, const st
 
     auto origin_about = original_mod_root_path/"About"/"About.xml";
     XMLDocument in_doc;
-    in_doc.LoadFile(origin_about.c_str());
+    in_doc.LoadFile(origin_about.string().c_str());
     auto * in_root = in_doc.RootElement();
 
     auto output_about = translation_mod_root_path/"About"/"About.xml";
@@ -261,7 +261,7 @@ void auto_about(const std::filesystem::path& translation_mod_root_path, const st
     out_node = out_root->FirstChildElement("loadAfter")->InsertNewChildElement("li");
     out_node->SetText(in_text);
 
-    std::unique_ptr<FILE, decltype(&fclose)> fd(fopen(output_about.c_str(),"wb"),&fclose);
+    std::unique_ptr<FILE, decltype(&fclose)> fd(fopen(output_about.string().c_str(),"wb"),&fclose);
     tinyxml2::XMLPrinter printer(fd.get());
     printer.PushHeader(true, true);
     out_doc.Print(&printer);
